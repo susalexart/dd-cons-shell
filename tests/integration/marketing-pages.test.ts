@@ -88,6 +88,28 @@ describe('P26 — /pricing renders both tier columns', () => {
     expect(html).not.toMatch(/\/api\/stripe/i);
   });
 
+  it('renders all four tier names under each product heading', async () => {
+    // P26.6 regression guard: the cathedral-watermark + mesh-bg dressing did
+    // not accidentally strip the literal tier names from the SSR output. We
+    // assert each tier name appears at least twice (once per product column).
+    const res = await fetch(`http://localhost:${PORT}/pricing`);
+    const html = await res.text();
+    for (const name of ['Free', 'Pro', 'Team', 'Enterprise']) {
+      // Each tier name appears in two <h3>s (dev-division + consulting columns).
+      const matches = html.match(new RegExp(`>${name}<`, 'g')) ?? [];
+      expect(matches.length).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('hero video on / is marked aria-hidden (regression guard)', async () => {
+    // P26.5/P26.6 invariant: the background <video> in <HeroStage> is purely
+    // decorative and MUST stay aria-hidden so screen readers skip it.
+    const res = await fetch(`http://localhost:${PORT}/`);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toMatch(/data-testid="hero-video"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*data-testid="hero-video"/);
+  });
+
   it('has a single <h1> and at least two <h2>s for landmark structure', async () => {
     const res = await fetch(`http://localhost:${PORT}/pricing`);
     const html = await res.text();
