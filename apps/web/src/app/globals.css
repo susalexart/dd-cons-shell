@@ -15,6 +15,13 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter,
     Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
+
+  /* P26.5 — glassmorphism + glow tokens. */
+  --glass-blur: 20px;
+  --glass-bg: color-mix(in oklch, #0b0d10 60%, transparent);
+  --glass-border: color-mix(in oklch, #f5f7fa 10%, transparent);
+  --glow-accent: 0 0 40px color-mix(in oklch, #5ee0a8 50%, transparent);
+  --glow-violet: 0 0 40px color-mix(in oklch, #b18cff 45%, transparent);
 }
 
 :root {
@@ -29,11 +36,142 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Visible focus ring everywhere — WCAG 2.4.7. Tailwind's `focus-visible:`
-   utilities target this same selector; this is the safety net for any
-   non-utility-styled interactive element. */
+/* Visible focus ring everywhere — WCAG 2.4.7. */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ---------- P26.5 — Cathedral elevation ---------- */
+
+/* Glassmorphism card primitive — used on hero bento + pricing tiers. */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+}
+
+/* Mint glow on hover for primary CTAs. */
+.glow-mint:hover {
+  box-shadow: var(--glow-accent);
+}
+.glow-violet:hover {
+  box-shadow: var(--glow-violet);
+}
+
+/* Conic gradient border for the "popular" pricing tier. Uses a masked
+   gradient ring so the card interior stays unaffected. */
+.gradient-ring {
+  position: relative;
+  isolation: isolate;
+}
+.gradient-ring::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 0deg,
+    var(--color-accent),
+    var(--color-violet),
+    var(--color-accent)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  z-index: -1;
+}
+
+/* Text reveal — IntersectionObserver toggles .in-view. */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: opacity, transform;
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Cursor-tilt parallax target: vanilla JS writes --tx / --ty. */
+.parallax {
+  transform: translate3d(var(--tx, 0), var(--ty, 0), 0);
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: transform;
+}
+
+/* Faint cathedral watermark used on /pricing. */
+.cathedral-watermark {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+/* Animations — gated behind reduced-motion media query below. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Mesh gradient drift behind hero + pricing. */
+  @keyframes mesh-drift {
+    0%   { transform: translate3d(-6%, -4%, 0) rotate(0deg);   }
+    50%  { transform: translate3d(4%, 6%, 0)  rotate(180deg); }
+    100% { transform: translate3d(-6%, -4%, 0) rotate(360deg); }
+  }
+  .mesh-bg {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    background:
+      radial-gradient(40% 30% at 30% 30%, color-mix(in oklch, var(--color-accent) 35%, transparent) 0%, transparent 70%),
+      radial-gradient(40% 35% at 70% 60%, color-mix(in oklch, var(--color-violet) 35%, transparent) 0%, transparent 70%),
+      conic-gradient(from 90deg at 50% 50%, transparent 0deg, color-mix(in oklch, var(--color-accent) 12%, transparent) 120deg, transparent 240deg);
+    filter: blur(40px);
+    animation: mesh-drift 60s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Conic ring rotation on the "popular" pricing tier. */
+  @keyframes ring-spin {
+    to { transform: rotate(360deg); }
+  }
+  .gradient-ring::before {
+    animation: ring-spin 12s linear infinite;
+  }
+
+  /* Slow zoom on hero video for ambient motion. */
+  @keyframes hero-breathe {
+    0%, 100% { transform: scale(1.02); }
+    50%      { transform: scale(1.08); }
+  }
+  .hero-breathe {
+    animation: hero-breathe 24s ease-in-out infinite;
+  }
+}
+
+/* Reduced motion users get a static mesh and no parallax. */
+@media (prefers-reduced-motion: reduce) {
+  .mesh-bg {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    background:
+      radial-gradient(40% 30% at 30% 30%, color-mix(in oklch, var(--color-accent) 25%, transparent) 0%, transparent 70%),
+      radial-gradient(40% 35% at 70% 60%, color-mix(in oklch, var(--color-violet) 25%, transparent) 0%, transparent 70%);
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .parallax { transform: none !important; transition: none; }
 }
