@@ -1,0 +1,22 @@
+# dependencies / build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# Next.js build output
+.next/
+
+# better-auth on-disk SQLite (issuer state)
+.shell-auth/
+*.db
+*.db-shm
+*.db-wal
+
+# os / editor
+.DS_Store
+.claude/worktrees/
