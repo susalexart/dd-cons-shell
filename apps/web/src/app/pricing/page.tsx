@@ -148,12 +148,12 @@ function TierCard({
   tier: Tier;
   accent: string;
 }) {
-  return (
+  // P26.6 — glass panel; "popular" tier gets the animated conic ring via
+  // .gradient-ring (mask-composite ring trick defined in globals.css).
+  const card = (
     <article
-      className={`flex flex-col rounded-lg border bg-[var(--color-bg)] p-6 ${
-        tier.highlighted
-          ? 'border-[color:var(--color-accent)]'
-          : 'border-[var(--color-border)]'
+      className={`glass relative flex flex-col p-6 ${
+        tier.highlighted ? '' : ''
       }`}
       aria-labelledby={`${product}-${tier.name.toLowerCase()}-name`}
     >
@@ -189,16 +189,25 @@ function TierCard({
 
       <Link
         href={tierHref(product, tier)}
-        className={`mt-6 inline-block rounded-md px-4 py-2 text-center font-semibold ${
+        className={`mt-6 inline-block rounded-md px-4 py-2 text-center font-semibold transition-shadow ${
           tier.highlighted
-            ? 'bg-[var(--color-accent)] text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-hover)]'
-            : 'border border-[var(--color-border)] text-[var(--color-fg)] hover:border-[color:var(--color-accent)]'
+            ? 'glow-mint bg-[var(--color-accent)] text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-hover)]'
+            : 'glow-violet border border-[var(--color-border)] text-[var(--color-fg)] hover:border-[color:var(--color-accent)]'
         }`}
       >
         {tierCtaLabel(tier)}
       </Link>
     </article>
   );
+
+  if (tier.highlighted) {
+    return (
+      <div className="gradient-ring rounded-[14px]">
+        {card}
+      </div>
+    );
+  }
+  return card;
 }
 
 export const metadata = {
@@ -210,7 +219,23 @@ export const metadata = {
 export default function PricingPage() {
   return (
     <MarketingShell>
-      <section className="mx-auto max-w-6xl px-6 pt-16 pb-8">
+      {/* P26.6 — faint cathedral watermark fixed behind the whole page. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/hero/cathedral.jpg"
+        alt=""
+        aria-hidden="true"
+        className="cathedral-watermark"
+      />
+      {/* P26.6 — slow mesh drift backdrop (same component as HeroStage). */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      >
+        <div className="mesh-bg" style={{ opacity: 0.35 }} />
+      </div>
+
+      <section className="relative mx-auto max-w-6xl px-6 pt-16 pb-8">
         <h1 className="text-balance text-4xl font-semibold tracking-tight">
           Pricing — pick a product, pick a tier.
         </h1>
@@ -221,7 +246,7 @@ export default function PricingPage() {
         </p>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-16">
+      <section className="relative mx-auto max-w-6xl px-6 pb-16">
         <div className="grid gap-10 md:grid-cols-2">
           <div aria-labelledby="dev-division-heading">
             <header className="mb-6">
