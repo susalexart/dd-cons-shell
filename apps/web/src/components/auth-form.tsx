@@ -47,7 +47,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       : 'One account, both products. First social login creates your user.';
 
   return (
-    <div className="mx-auto max-w-md px-6 py-20">
+    <div className="mx-auto max-w-md px-6 py-10">
       <h1 className="text-3xl font-semibold tracking-tight">{heading}</h1>
       <p className="mt-2 text-[var(--color-fg-muted)]">{sub}</p>
 
@@ -63,7 +63,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           type="button"
           onClick={() => signInWith('github')}
           disabled={loading !== null}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-4 py-3 font-semibold text-[var(--color-fg)] hover:border-[var(--color-accent)] disabled:opacity-60"
+          className="glow-mint flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-4 py-3 font-semibold text-[var(--color-fg)] transition-shadow hover:border-[var(--color-accent)] disabled:opacity-60"
         >
           {loading === 'github' ? 'Redirecting…' : 'Continue with GitHub'}
         </button>
@@ -71,7 +71,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           type="button"
           onClick={() => signInWith('google')}
           disabled={loading !== null}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-4 py-3 font-semibold text-[var(--color-fg)] hover:border-[var(--color-accent)] disabled:opacity-60"
+          className="glow-violet flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-4 py-3 font-semibold text-[var(--color-fg)] transition-shadow hover:border-[var(--color-violet)] disabled:opacity-60"
         >
           {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
         </button>
