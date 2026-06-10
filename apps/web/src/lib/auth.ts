@@ -45,7 +45,11 @@ export const auth = betterAuth({
   secret: (() => {
     const s = process.env.SHELL_BETTER_AUTH_SECRET;
     if (!s || s.length < 32) {
-      if (!isProd) {
+      // next build imports this module during page-data collection with
+      // NODE_ENV=production but no runtime secrets in the builder stage.
+      // Relax only for that phase; the boot-time guard stays strict.
+      const isNextBuild = process.env.NEXT_PHASE === 'phase-production-build';
+      if (!isProd || isNextBuild) {
         // Allow a deterministic dev secret so `pnpm test` doesn't need real
         // env wiring. NEVER reached in production thanks to the guard above.
         return 'dev-only-shell-secret-do-not-use-in-production-32chars!';
