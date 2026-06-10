@@ -13,7 +13,7 @@
  * Postgres when the umbrella moves into Docker Compose.
  */
 import { betterAuth } from 'better-auth';
-import { database } from '../db/sqlite.ts';
+import { database } from '../db/sqlite';
 
 const isProd = process.env.NODE_ENV === 'production';
 
