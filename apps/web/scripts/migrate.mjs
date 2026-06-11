@@ -34,6 +34,16 @@ try {
       console.log('[migrate] added user.products (backfilled existing rows with [])');
     }
   }
+
+  // Pre-authorized emails (applied to the user row on first sign-up).
+  db.exec(
+    `CREATE TABLE IF NOT EXISTS "pending_grant" (
+      "email" TEXT PRIMARY KEY,
+      "products" TEXT NOT NULL DEFAULT '[]',
+      "createdAt" TEXT NOT NULL
+    )`,
+  );
+  console.log('[migrate] pending_grant table ensured');
 } finally {
   db.close();
 }

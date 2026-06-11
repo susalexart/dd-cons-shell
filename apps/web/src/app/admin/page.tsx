@@ -11,10 +11,11 @@ import { notFound, redirect } from 'next/navigation';
 import { auth } from '../../lib/auth';
 import {
   isShellAdmin,
+  listPendingGrants,
   listUsers,
   PRODUCT_IDS,
 } from '../../lib/entitlements';
-import { toggleProduct } from './actions';
+import { addPendingGrant, removeUser, revokePendingGrant, toggleProduct } from './actions';
 
 export const metadata: Metadata = { title: 'Admin · dd-cons' };
 export const dynamic = 'force-dynamic';
@@ -32,6 +33,7 @@ export default async function AdminPage() {
   if (!isShellAdmin(session.user)) notFound();
 
   const users = listUsers();
+  const pending = listPendingGrants();
 
   return (
     <>
@@ -92,6 +94,9 @@ export default async function AdminPage() {
                       {p}
                     </th>
                   ))}
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    <span className="sr-only">Remove</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -157,6 +162,20 @@ export default async function AdminPage() {
                           </td>
                         );
                       })}
+                      <td className="px-5 py-4 text-right">
+                        {!u.isAdmin && !isSelf && (
+                          <form action={removeUser}>
+                            <input type="hidden" name="userId" value={u.id} />
+                            <button
+                              type="submit"
+                              aria-label={`Remove ${u.email}`}
+                              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-fg-muted)] hover:border-red-400/60 hover:text-red-300"
+                            >
+                              Remove
+                            </button>
+                          </form>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -164,6 +183,93 @@ export default async function AdminPage() {
             </table>
           </div>
         )}
+
+        <section aria-labelledby="pending-heading" className="mt-12">
+          <h2
+            id="pending-heading"
+            className="text-xl font-semibold tracking-tight text-[var(--color-fg)]"
+          >
+            Pre-authorized emails
+          </h2>
+          <p className="mt-2 text-sm text-[var(--color-fg-muted)]">
+            Grant access before someone signs up. When they first sign in with a
+            matching email, the products below are applied automatically.
+          </p>
+
+          <div className="glass mt-4 rounded-xl px-5 py-5">
+            <form action={addPendingGrant} className="flex flex-wrap items-center gap-4">
+              <label htmlFor="pending-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="pending-email"
+                name="email"
+                type="email"
+                required
+                placeholder="person@example.com"
+                className="w-64 rounded-md border border-[var(--color-border)] bg-transparent px-3 py-1.5 text-sm text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:border-[var(--color-accent)] focus:outline-none"
+              />
+              {PRODUCT_IDS.map((p) => (
+                <label
+                  key={p}
+                  className="flex items-center gap-2 font-mono text-xs text-[var(--color-fg-muted)]"
+                >
+                  <input
+                    type="checkbox"
+                    name="product"
+                    value={p}
+                    className="h-4 w-4 accent-[var(--color-accent)]"
+                  />
+                  {p}
+                </label>
+              ))}
+              <button
+                type="submit"
+                className="rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-xs font-semibold text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-hover)]"
+              >
+                Pre-authorize
+              </button>
+            </form>
+
+            {pending.length === 0 ? (
+              <p className="mt-5 border-t border-[var(--color-border)] pt-4 text-sm text-[var(--color-fg-muted)]">
+                No pending pre-authorizations.
+              </p>
+            ) : (
+              <ul className="mt-5 divide-y divide-[var(--color-border)] border-t border-[var(--color-border)]">
+                {pending.map((g) => (
+                  <li key={g.email} className="flex items-center justify-between gap-4 py-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-sm text-[var(--color-fg)]">{g.email}</span>
+                      {g.products.length === 0 ? (
+                        <span className="text-xs text-[var(--color-fg-muted)]">no products</span>
+                      ) : (
+                        g.products.map((p) => (
+                          <span
+                            key={p}
+                            className="rounded-full border border-[var(--color-border)] px-2 py-0.5 font-mono text-xs text-[var(--color-fg-muted)]"
+                          >
+                            {p}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                    <form action={revokePendingGrant}>
+                      <input type="hidden" name="email" value={g.email} />
+                      <button
+                        type="submit"
+                        aria-label={`Revoke pre-authorization for ${g.email}`}
+                        className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-fg-muted)] hover:border-red-400/60 hover:text-red-300"
+                      >
+                        Revoke
+                      </button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
       </main>
     </>
   );

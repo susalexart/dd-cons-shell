@@ -8,19 +8,28 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { auth } from '../../lib/auth';
 import {
+  deleteUserCascade,
+  findUserByEmail,
   isShellAdmin,
   parseProducts,
   PRODUCT_IDS,
+  removePendingGrant,
+  setPendingGrant,
   setUserProducts,
   type ProductId,
 } from '../../lib/entitlements';
 import { database } from '../../db/sqlite';
 
-export async function toggleProduct(formData: FormData): Promise<void> {
+async function requireAdmin() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !isShellAdmin(session.user)) {
     throw new Error('Forbidden');
   }
+  return session;
+}
+
+export async function toggleProduct(formData: FormData): Promise<void> {
+  await requireAdmin();
 
   const userId = formData.get('userId');
   const product = formData.get('product');
@@ -43,5 +52,64 @@ export async function toggleProduct(formData: FormData): Promise<void> {
     : [...current, productId];
 
   setUserProducts(userId, next);
+  revalidatePath('/admin');
+}
+
+export async function removeUser(formData: FormData): Promise<void> {
+  const session = await requireAdmin();
+
+  const userId = formData.get('userId');
+  if (typeof userId !== 'string' || userId.length === 0) {
+    throw new Error('Invalid request');
+  }
+  if (userId === session.user.id) {
+    throw new Error('You cannot remove yourself');
+  }
+
+  const target = database
+    .prepare('SELECT "id", "email" FROM "user" WHERE "id" = ?')
+    .get(userId) as { id: string; email: string } | undefined;
+  if (!target) throw new Error('Unknown user');
+  // Admins (env list + first user) can't be removed from the UI — their
+  // adminness doesn't live in the DB, so deletion wouldn't revoke anything
+  // except the owner's own account.
+  if (isShellAdmin(target)) {
+    throw new Error('Admins cannot be removed');
+  }
+
+  deleteUserCascade(userId);
+  revalidatePath('/admin');
+}
+
+export async function addPendingGrant(formData: FormData): Promise<void> {
+  await requireAdmin();
+
+  const email = formData.get('email');
+  if (typeof email !== 'string' || email.trim().length === 0) {
+    throw new Error('Email is required');
+  }
+  const products = formData
+    .getAll('product')
+    .filter((p): p is string => typeof p === 'string')
+    .filter((p): p is ProductId => (PRODUCT_IDS as readonly string[]).includes(p));
+
+  // If they already signed up, the grant belongs on the user row — the
+  // pending table would never be consumed.
+  if (findUserByEmail(email)) {
+    throw new Error('User already exists — use the product toggles above');
+  }
+
+  setPendingGrant(email, products);
+  revalidatePath('/admin');
+}
+
+export async function revokePendingGrant(formData: FormData): Promise<void> {
+  await requireAdmin();
+
+  const email = formData.get('email');
+  if (typeof email !== 'string' || email.trim().length === 0) {
+    throw new Error('Invalid request');
+  }
+  removePendingGrant(email);
   revalidatePath('/admin');
 }

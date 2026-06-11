@@ -102,6 +102,17 @@ export function listUsers(): AdminUserRow[] {
   }
 }
 
+export function findUserByEmail(email: string): { id: string; email: string } | null {
+  try {
+    const row = database
+      .prepare('SELECT "id", "email" FROM "user" WHERE lower("email") = ? LIMIT 1')
+      .get(email.trim().toLowerCase()) as { id: string; email: string } | undefined;
+    return row ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function setUserProducts(userId: string, products: ProductId[]): void {
   const invalid = products.filter((p) => !isProductId(p));
   if (invalid.length > 0) {
@@ -113,5 +124,106 @@ export function setUserProducts(userId: string, products: ProductId[]): void {
     .run(JSON.stringify(deduped), new Date().toISOString(), userId);
   if (result.changes === 0) {
     throw new Error(`No user with id ${userId}`);
+  }
+}
+
+/**
+ * Remove a user and their auth state (sessions + linked OAuth accounts).
+ * Caller is responsible for the policy guards (no self-removal, no admins).
+ */
+export function deleteUserCascade(userId: string): void {
+  const tx = database.transaction((id: string) => {
+    database.prepare('DELETE FROM "session" WHERE "userId" = ?').run(id);
+    database.prepare('DELETE FROM "account" WHERE "userId" = ?').run(id);
+    const result = database.prepare('DELETE FROM "user" WHERE "id" = ?').run(id);
+    if (result.changes === 0) {
+      throw new Error(`No user with id ${id}`);
+    }
+  });
+  tx(userId);
+}
+
+// ── Pending grants — pre-authorized emails ──────────────────────────────────
+//
+// OAuth-only sign-up means admins can't create users ahead of time. A pending
+// grant lets an admin authorize an email BEFORE first login; the better-auth
+// user.create hook applies it to the new row (see lib/auth.ts) and the grant
+// is consumed.
+
+export interface PendingGrantRow {
+  email: string;
+  products: ProductId[];
+  createdAt: string;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function ensurePendingGrantTable(): void {
+  database.exec(
+    `CREATE TABLE IF NOT EXISTS "pending_grant" (
+      "email" TEXT PRIMARY KEY,
+      "products" TEXT NOT NULL DEFAULT '[]',
+      "createdAt" TEXT NOT NULL
+    )`,
+  );
+}
+
+export function listPendingGrants(): PendingGrantRow[] {
+  try {
+    ensurePendingGrantTable();
+    const rows = database
+      .prepare(
+        'SELECT "email", "products", "createdAt" FROM "pending_grant" ORDER BY "createdAt" ASC, "email" ASC',
+      )
+      .all() as Array<{ email: string; products: string | null; createdAt: string }>;
+    return rows.map((r) => ({
+      email: r.email,
+      products: parseProducts(r.products),
+      createdAt: r.createdAt,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/** Upsert: re-adding an email replaces its product list. */
+export function setPendingGrant(email: string, products: ProductId[]): void {
+  const norm = email.trim().toLowerCase();
+  if (!EMAIL_RE.test(norm)) {
+    throw new Error('Invalid email address');
+  }
+  const invalid = products.filter((p) => !isProductId(p));
+  if (invalid.length > 0) {
+    throw new Error(`Unknown product id(s): ${invalid.join(', ')}`);
+  }
+  ensurePendingGrantTable();
+  database
+    .prepare(
+      `INSERT INTO "pending_grant" ("email", "products", "createdAt") VALUES (?, ?, ?)
+       ON CONFLICT("email") DO UPDATE SET "products" = excluded."products"`,
+    )
+    .run(norm, JSON.stringify([...new Set(products)]), new Date().toISOString());
+}
+
+export function getPendingGrant(email: string): ProductId[] | null {
+  try {
+    ensurePendingGrantTable();
+    const row = database
+      .prepare('SELECT "products" FROM "pending_grant" WHERE "email" = ?')
+      .get(email.trim().toLowerCase()) as { products: string | null } | undefined;
+    return row ? parseProducts(row.products) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function removePendingGrant(email: string): void {
+  try {
+    ensurePendingGrantTable();
+    database
+      .prepare('DELETE FROM "pending_grant" WHERE "email" = ?')
+      .run(email.trim().toLowerCase());
+  } catch {
+    // best-effort cleanup — a stale row is harmless (consumed at most once)
   }
 }

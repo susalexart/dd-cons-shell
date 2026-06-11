@@ -15,7 +15,12 @@
 import { betterAuth } from 'better-auth';
 import { customSession } from 'better-auth/plugins';
 import { database } from '../db/sqlite';
-import { effectiveProducts, isShellAdmin } from './entitlements';
+import {
+  effectiveProducts,
+  getPendingGrant,
+  isShellAdmin,
+  removePendingGrant,
+} from './entitlements';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -97,6 +102,25 @@ export const auth = betterAuth({
         type: 'string',
         required: false,
         defaultValue: '[]',
+      },
+    },
+  },
+
+  // Pre-authorized emails: apply a pending grant to the user row at creation
+  // time (before-hook, so the row is born with the right products), then
+  // consume the grant in the after-hook — a failed create never burns it.
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const pending = getPendingGrant(user.email);
+          if (pending && pending.length > 0) {
+            return { data: { ...user, products: JSON.stringify(pending) } };
+          }
+        },
+        after: async (user) => {
+          removePendingGrant(user.email);
+        },
       },
     },
   },
