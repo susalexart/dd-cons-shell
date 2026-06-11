@@ -1,4 +1,7 @@
 import type { ReactNode } from 'react';
+import { BrainCanvas } from '../components/motion/brain-canvas';
+import { Grain } from '../components/motion/grain';
+import { MotionProvider } from '../components/motion/motion-provider';
 import './globals.css';
 
 export const metadata = {
@@ -10,7 +13,21 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>
+        <MotionProvider>
+          <BrainCanvas />
+          <Grain />
+          {children}
+        </MotionProvider>
+      </body>
     </html>
   );
 }

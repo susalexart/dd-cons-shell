@@ -3,25 +3,29 @@
 
 /* Design tokens — single source of truth for the marketing chrome. */
 @theme {
-  --color-bg: #0b0d10;
-  --color-bg-elev: #14181d;
-  --color-fg: #f5f7fa;
-  --color-fg-muted: #b7bfcb;
-  --color-border: #232a33;
-  --color-accent: #5ee0a8;        /* mint green — primary CTA */
-  --color-accent-fg: #062017;     /* readable on the accent */
-  --color-accent-hover: #46c993;
-  --color-violet: #b18cff;        /* secondary accent for consulting */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter,
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
+  /* dd-journey motion-core identity: void / cyan (dev-division) / orange (consulting). */
+  --color-bg: #04070f;            /* void */
+  --color-bg-elev: #0a1120;       /* panel */
+  --color-fg: #eaf2ff;            /* ice */
+  --color-fg-muted: #b9c7de;
+  --color-border: #1b2536;
+  --color-accent: #2de2e6;        /* cyan — dev-division / primary CTA */
+  --color-accent-fg: #04070f;     /* readable on the accent */
+  --color-accent-hover: #25c6ca;
+  --color-violet: #ff7a29;        /* orange — consulting accent (legacy var name) */
+  --color-ghost: #8fb8ff;
+  --color-dim: #5b6b85;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Fira Code", Menlo, monospace;
+  --font-display: "Unbounded", var(--font-sans);
 
   /* P26.5 — glassmorphism + glow tokens. */
   --glass-blur: 20px;
-  --glass-bg: color-mix(in oklch, #0b0d10 60%, transparent);
-  --glass-border: color-mix(in oklch, #f5f7fa 10%, transparent);
-  --glow-accent: 0 0 40px color-mix(in oklch, #5ee0a8 50%, transparent);
-  --glow-violet: 0 0 40px color-mix(in oklch, #b18cff 45%, transparent);
+  --glass-bg: color-mix(in oklch, #04070f 60%, transparent);
+  --glass-border: color-mix(in oklch, #eaf2ff 10%, transparent);
+  --glow-accent: 0 0 40px color-mix(in oklch, #2de2e6 50%, transparent);
+  --glow-violet: 0 0 40px color-mix(in oklch, #ff7a29 45%, transparent);
 }
 
 :root {
@@ -34,6 +38,17 @@ body {
   color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Motion-core typography: display face for headings everywhere. */
+h1,
+h2 {
+  font-family: var(--font-display);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
 }
 
 /* Visible focus ring everywhere — WCAG 2.4.7. */
@@ -174,4 +189,331 @@ body {
   }
   .reveal { opacity: 1; transform: none; transition: none; }
   .parallax { transform: none !important; transition: none; }
+}
+
+/* ===================================================================
+   dd-journey motion core — scene scaffolding, spine, HUD, grain.
+   Ported from visuals/dd-journey.html; images extracted to /journey/.
+   =================================================================== */
+
+#stars {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 7s steps(10) infinite;
+}
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -8%); }
+  30% { transform: translate(4%, -3%); }
+  50% { transform: translate(-7%, 5%); }
+  70% { transform: translate(6%, 8%); }
+  90% { transform: translate(-3%, 4%); }
+}
+
+/* ---------- mission spine ---------- */
+.spine {
+  position: fixed;
+  left: 28px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  z-index: 40;
+  background: rgba(143, 184, 255, 0.12);
+}
+.spine-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(180deg, var(--color-accent), var(--color-violet));
+  box-shadow: 0 0 12px var(--color-accent);
+}
+.spine-node {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-dim);
+  background: var(--color-bg);
+  transition: border-color 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+}
+.spine-node:hover { border-color: var(--color-violet); }
+.spine-node::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--color-dim);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.spine-node:hover::after { opacity: 1; }
+.spine-node.lit {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  box-shadow: 0 0 14px var(--color-accent);
+}
+.spine-node[data-at="0"] { top: 12%; }
+.spine-node[data-at="1"] { top: 35%; }
+.spine-node[data-at="2"] { top: 58%; }
+.spine-node[data-at="3"] { top: 81%; }
+
+/* ---------- HUD readout ---------- */
+.hud {
+  position: fixed;
+  right: 28px;
+  top: 28px;
+  z-index: 40;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--color-dim);
+  line-height: 1.9;
+}
+.hud b { color: var(--color-accent); font-weight: 500; }
+.hud .sector { color: var(--color-fg); }
+
+/* ---------- chapter scaffolding ---------- */
+.scene {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+}
+.scene .bg {
+  position: absolute;
+  inset: -6%;
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+.scene .dim-layer {
+  position: absolute;
+  inset: 0;
+  background: #020409;
+  pointer-events: none;
+  will-change: opacity;
+}
+.scene .veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(4, 7, 15, 0.85) 0%, rgba(4, 7, 15, 0.25) 35%, rgba(4, 7, 15, 0.25) 65%, rgba(4, 7, 15, 0.92) 100%);
+}
+.scene .inner {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  color: var(--color-violet);
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.eyebrow::before { content: "// "; color: var(--color-accent); }
+.journey h1 { font-size: clamp(40px, 7.2vw, 96px); text-transform: uppercase; font-weight: 800; line-height: 1.04; }
+.journey h2 { font-size: clamp(30px, 4.6vw, 60px); font-weight: 800; line-height: 1.04; }
+.lede {
+  margin-top: 26px;
+  max-width: 560px;
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--color-fg-muted);
+  line-height: 1.7;
+}
+
+/* ---------- hero ---------- */
+#hero .bg { background-image: url("/journey/hero.webp"); }
+.hero-title .word { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.hero-title .word span { display: inline-block; transform: translateY(110%); }
+.hero-sub {
+  margin-top: 30px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--color-ghost);
+}
+.scroll-cue {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--color-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 6;
+}
+.scroll-cue .line {
+  width: 1px;
+  height: 46px;
+  background: linear-gradient(180deg, var(--color-accent), transparent);
+  animation: drop 1.6s ease-in-out infinite;
+}
+@keyframes drop {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ---------- chapter 01 : terrain ---------- */
+#terrain .bg { background-image: url("/journey/hero.webp"); }
+.steps { position: relative; min-height: 300px; }
+.step {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+}
+.step .idx {
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  margin-bottom: 14px;
+}
+
+/* ---------- chapter 02 : agents ---------- */
+#agents .bg { background-image: url("/journey/agents.jpg"); }
+#agents .veil {
+  background: linear-gradient(90deg, rgba(4, 7, 15, 0.92) 0%, rgba(4, 7, 15, 0.35) 55%, rgba(4, 7, 15, 0.55) 100%);
+}
+.statgrid { display: flex; gap: 48px; margin-top: 42px; flex-wrap: wrap; }
+.stat { border-left: 2px solid var(--color-accent); padding-left: 18px; }
+.stat .num {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.4vw, 46px);
+  font-weight: 600;
+  color: var(--color-fg);
+}
+.stat .num em { font-style: normal; color: var(--color-violet); font-size: 0.6em; }
+.stat .lab {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--color-dim);
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+/* ---------- chapter 03 : core ---------- */
+#core { background: #020409; }
+#core .bg { background-image: url("/journey/core.jpg"); }
+#core .inner { align-items: center; text-align: center; }
+#core .lede { margin-left: auto; margin-right: auto; }
+.warp-line {
+  position: absolute;
+  z-index: 4;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--color-ghost);
+  opacity: 0;
+  white-space: nowrap;
+}
+
+/* ---------- arrival ---------- */
+#arrival {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+#arrival .inner { text-align: center; align-items: center; padding: 120px 24px; display: flex; flex-direction: column; }
+.cta-row { display: flex; gap: 18px; margin-top: 44px; flex-wrap: wrap; justify-content: center; }
+.cta {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 18px 34px;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s ease;
+}
+.cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent);
+  transform: translateX(-101%);
+  transition: transform 0.35s cubic-bezier(0.7, 0, 0.2, 1);
+  z-index: -1;
+}
+.cta:hover { color: var(--color-bg); }
+.cta:hover::after { transform: translateX(0); }
+.cta.alt { border-color: var(--color-violet); color: var(--color-violet); }
+.cta.alt::after { background: var(--color-violet); }
+.cta.alt:hover { color: var(--color-bg); }
+
+.journey-footer {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  padding: 30px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--color-dim);
+}
+
+@media (max-width: 760px) {
+  .scene .inner { padding: 0 24px 0 56px; }
+  .hud { display: none; }
+  .spine { left: 16px; }
+  .statgrid { gap: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain, .scroll-cue .line { animation: none; }
+  .step { position: relative; opacity: 1; visibility: visible; }
+  .hero-title .word span { transform: none; }
 }

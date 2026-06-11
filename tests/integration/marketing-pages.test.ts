@@ -101,13 +101,17 @@ describe('P26 — /pricing renders both tier columns', () => {
     }
   });
 
-  it('hero video on / is marked aria-hidden (regression guard)', async () => {
-    // P26.5/P26.6 invariant: the background <video> in <HeroStage> is purely
-    // decorative and MUST stay aria-hidden so screen readers skip it.
+  it('journey decorative layers on / are marked aria-hidden (regression guard)', async () => {
+    // Motion-core invariant: the brain canvas, grain overlay, spine nav, and
+    // HUD are purely decorative and MUST stay aria-hidden so screen readers
+    // skip them and only read the chapter copy.
     const res = await fetch(`http://localhost:${PORT}/`);
     expect(res.status).toBe(200);
     const html = await res.text();
-    expect(html).toMatch(/data-testid="hero-video"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*data-testid="hero-video"/);
+    expect(html).toMatch(/<canvas id="stars"[^>]*aria-hidden="true"/);
+    expect(html).toMatch(/class="grain"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="grain"/);
+    expect(html).toMatch(/class="spine"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="spine"/);
+    expect(html).toMatch(/class="hud"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="hud"/);
   });
 
   it('has a single <h1> and at least two <h2>s for landmark structure', async () => {
