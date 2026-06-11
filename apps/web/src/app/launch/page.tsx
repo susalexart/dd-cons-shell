@@ -79,6 +79,14 @@ export default async function LaunchPage({
               <li className="hidden text-[var(--color-fg-muted)] sm:block">
                 {user.email}
               </li>
+              <li>
+                <Link
+                  href="/workspace"
+                  className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-[var(--color-fg)] hover:border-[var(--color-accent)]"
+                >
+                  Workspace
+                </Link>
+              </li>
               {admin && (
                 <li>
                   <Link

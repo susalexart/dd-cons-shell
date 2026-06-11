@@ -17,6 +17,7 @@ import {
 } from '../motion/motion-core';
 
 const SECTORS = ['ORBIT', 'TERRAIN', 'WORKFORCE', 'CORE', 'ARRIVAL'];
+const SECTOR_TARGETS = ['#hero', '#terrain', '#agents', '#core', '#arrival'];
 
 export function Journey() {
   const root = useRef<HTMLDivElement>(null);
@@ -26,8 +27,11 @@ export function Journey() {
     const reduced = prefersReducedMotion();
 
     const setSector = (i: number) => {
-      const el = document.getElementById('hudSector');
-      if (el) el.textContent = SECTORS[i] ?? '';
+      document.querySelectorAll<HTMLElement>('.hud-nav button').forEach((b, idx) => {
+        b.classList.toggle('active', idx === i);
+        if (idx === i) b.setAttribute('aria-current', 'true');
+        else b.removeAttribute('aria-current');
+      });
     };
 
     const ctx = gsap.context(() => {
@@ -184,12 +188,22 @@ export function Journey() {
         ))}
       </div>
 
-      <div className="hud" aria-hidden="true">
-        <div>DD // MISSION CONSOLE</div>
-        <div>
-          SECTOR <b className="sector" id="hudSector">ORBIT</b>
-        </div>
-        <div>
+      <div className="hud">
+        <div aria-hidden="true">DD // MISSION CONSOLE</div>
+        <nav className="hud-nav" aria-label="Journey sections">
+          {SECTORS.map((label, i) => (
+            <button
+              key={label}
+              type="button"
+              className={i === 0 ? 'active' : undefined}
+              aria-current={i === 0 ? 'true' : undefined}
+              onClick={() => scrollToTarget(SECTOR_TARGETS[i]!)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div aria-hidden="true">
           DEPTH <b id="hudDepth">000</b>%
         </div>
       </div>
@@ -288,7 +302,7 @@ export function Journey() {
       {/* 03 · CORE */}
       <section className="scene" id="core">
         <div className="bg" />
-        <div className="dim-layer" id="coreDim" style={{ opacity: 0.45 }} />
+        <div className="dim-layer" id="coreDim" style={{ opacity: 0.6 }} />
         <div className="veil" />
         <span className="warp-line" style={{ top: '22%', left: '8%' }}>
           {'> orchestrator: routing 14 agents'}

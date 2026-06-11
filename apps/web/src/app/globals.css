@@ -295,7 +295,23 @@ h2 {
   line-height: 1.9;
 }
 .hud b { color: var(--color-accent); font-weight: 500; }
-.hud .sector { color: var(--color-fg); }
+.hud-nav { display: flex; flex-direction: column; align-items: flex-end; margin: 8px 0; }
+.hud-nav button {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  color: var(--color-dim);
+  background: none;
+  border: 0;
+  padding: 1px 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.hud-nav button:hover,
+.hud-nav button:focus-visible { color: var(--color-fg); }
+.hud-nav button.active { color: var(--color-accent); }
+.hud-nav button.active::before { content: "▸ "; }
 
 /* ---------- chapter scaffolding ---------- */
 .scene {
@@ -324,7 +340,7 @@ h2 {
 .scene .veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(4, 7, 15, 0.85) 0%, rgba(4, 7, 15, 0.25) 35%, rgba(4, 7, 15, 0.25) 65%, rgba(4, 7, 15, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(4, 7, 15, 0.9) 0%, rgba(4, 7, 15, 0.55) 35%, rgba(4, 7, 15, 0.55) 65%, rgba(4, 7, 15, 0.94) 100%);
 }
 .scene .inner {
   position: relative;
@@ -420,7 +436,7 @@ h2 {
 /* ---------- chapter 02 : agents ---------- */
 #agents .bg { background-image: url("/journey/agents.jpg"); }
 #agents .veil {
-  background: linear-gradient(90deg, rgba(4, 7, 15, 0.92) 0%, rgba(4, 7, 15, 0.35) 55%, rgba(4, 7, 15, 0.55) 100%);
+  background: linear-gradient(90deg, rgba(4, 7, 15, 0.94) 0%, rgba(4, 7, 15, 0.6) 55%, rgba(4, 7, 15, 0.72) 100%);
 }
 .statgrid { display: flex; gap: 48px; margin-top: 42px; flex-wrap: wrap; }
 .stat { border-left: 2px solid var(--color-accent); padding-left: 18px; }
