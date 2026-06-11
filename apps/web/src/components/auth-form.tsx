@@ -48,8 +48,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       <p className="mt-2 text-[var(--color-fg-muted)]">{sub}</p>
 
       <p className="mt-4 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-4 py-2 text-sm text-[var(--color-fg-muted)]">
-        After auth you&apos;ll land on{' '}
-        <code className="font-mono text-[var(--color-fg)]">{callbackURL}</code>.
+        After auth you&apos;ll land on your product launcher.
       </p>
 
       <div className="mt-8 space-y-3">

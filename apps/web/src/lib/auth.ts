@@ -13,7 +13,9 @@
  * Postgres when the umbrella moves into Docker Compose.
  */
 import { betterAuth } from 'better-auth';
+import { customSession } from 'better-auth/plugins';
 import { database } from '../db/sqlite';
+import { effectiveProducts, isShellAdmin } from './entitlements';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -89,8 +91,31 @@ export const auth = betterAuth({
         required: false,
         defaultValue: '{}',
       },
+      products: {
+        // JSON array of granted product ids ('dev-division' | 'consulting').
+        // Default-deny: new sign-ups get nothing until an admin grants access.
+        type: 'string',
+        required: false,
+        defaultValue: '[]',
+      },
     },
   },
+
+  // Every get-session response carries computed entitlement state so the
+  // products never have to duplicate the admin / first-user logic.
+  plugins: [
+    customSession(async ({ user, session }) => {
+      const u = user as typeof user & { products?: string | null };
+      return {
+        user: {
+          ...user,
+          isAdmin: isShellAdmin(u),
+          effectiveProducts: effectiveProducts(u),
+        },
+        session,
+      };
+    }),
+  ],
 });
 
 export type Auth = typeof auth;
