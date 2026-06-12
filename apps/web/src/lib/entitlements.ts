@@ -17,6 +17,7 @@ export interface EntitlementUser {
   id: string;
   email: string;
   products?: string | null;
+  role?: string | null;
 }
 
 export interface AdminUserRow {
@@ -26,6 +27,8 @@ export interface AdminUserRow {
   createdAt: string;
   products: ProductId[];
   isAdmin: boolean;
+  /** Adminness comes from SHELL_ADMIN_EMAILS or first-user bootstrap — not editable from the UI. */
+  adminLocked: boolean;
 }
 
 function isProductId(value: unknown): value is ProductId {
@@ -65,9 +68,39 @@ export function firstUserId(): string | null {
   }
 }
 
-export function isShellAdmin(user: Pick<EntitlementUser, 'id' | 'email'>): boolean {
+/** Env-list and first-user admins: their adminness lives outside the DB, so the UI can't change it. */
+export function isLockedAdmin(user: Pick<EntitlementUser, 'id' | 'email'>): boolean {
   if (adminEmails().has(user.email.toLowerCase())) return true;
   return user.id === firstUserId();
+}
+
+function getUserRole(userId: string): string | null {
+  try {
+    const row = database
+      .prepare('SELECT "role" FROM "user" WHERE "id" = ?')
+      .get(userId) as { role: string | null } | undefined;
+    return row?.role ?? null;
+  } catch {
+    // pre-migration DB without the role column
+    return null;
+  }
+}
+
+export function isShellAdmin(user: Pick<EntitlementUser, 'id' | 'email' | 'role'>): boolean {
+  if (isLockedAdmin(user)) return true;
+  // Session objects carry role (better-auth additionalField); plain {id,email}
+  // callers fall back to a DB lookup.
+  const role = user.role !== undefined ? user.role : getUserRole(user.id);
+  return role === 'admin';
+}
+
+export function setUserRole(userId: string, role: 'admin' | 'member'): void {
+  const result = database
+    .prepare('UPDATE "user" SET "role" = ?, "updatedAt" = ? WHERE "id" = ?')
+    .run(role, new Date().toISOString(), userId);
+  if (result.changes === 0) {
+    throw new Error(`No user with id ${userId}`);
+  }
 }
 
 /** Admins implicitly have every product; others get their granted list. */
@@ -80,7 +113,7 @@ export function listUsers(): AdminUserRow[] {
   try {
     const rows = database
       .prepare(
-        'SELECT "id", "email", "name", "createdAt", "products" FROM "user" ORDER BY "createdAt" ASC, "id" ASC',
+        'SELECT "id", "email", "name", "createdAt", "products", "role" FROM "user" ORDER BY "createdAt" ASC, "id" ASC',
       )
       .all() as Array<{
       id: string;
@@ -88,6 +121,7 @@ export function listUsers(): AdminUserRow[] {
       name: string | null;
       createdAt: string;
       products: string | null;
+      role: string | null;
     }>;
     return rows.map((r) => ({
       id: r.id,
@@ -96,6 +130,7 @@ export function listUsers(): AdminUserRow[] {
       createdAt: r.createdAt,
       products: parseProducts(r.products),
       isAdmin: isShellAdmin(r),
+      adminLocked: isLockedAdmin(r),
     }));
   } catch {
     return [];

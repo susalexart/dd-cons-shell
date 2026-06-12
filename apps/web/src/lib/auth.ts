@@ -103,6 +103,14 @@ export const auth = betterAuth({
         required: false,
         defaultValue: '[]',
       },
+      role: {
+        // 'member' | 'admin' — DB-backed admin grant, editable from /admin.
+        // Env-list (SHELL_ADMIN_EMAILS) and first-user admins are admin
+        // regardless of this column (see entitlements.isShellAdmin).
+        type: 'string',
+        required: false,
+        defaultValue: 'member',
+      },
     },
   },
 

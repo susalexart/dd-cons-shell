@@ -33,6 +33,14 @@ try {
       );
       console.log('[migrate] added user.products (backfilled existing rows with [])');
     }
+
+    const hasRole = columns.some((c) => c.name === 'role');
+    if (hasRole) {
+      console.log('[migrate] user.role already present — nothing to do');
+    } else {
+      db.exec(`ALTER TABLE "user" ADD COLUMN "role" text NOT NULL DEFAULT 'member'`);
+      console.log("[migrate] added user.role (backfilled existing rows with 'member')");
+    }
   }
 
   // Pre-authorized emails (applied to the user row on first sign-up).

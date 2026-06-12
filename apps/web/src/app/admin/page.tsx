@@ -6,8 +6,8 @@
  */
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { ShellNav } from '../../components/shell-nav';
 import { auth } from '../../lib/auth';
 import {
   isShellAdmin,
@@ -15,7 +15,7 @@ import {
   listUsers,
   PRODUCT_IDS,
 } from '../../lib/entitlements';
-import { addPendingGrant, removeUser, revokePendingGrant, toggleProduct } from './actions';
+import { addPendingGrant, removeUser, revokePendingGrant, setRole, toggleProduct } from './actions';
 
 export const metadata: Metadata = { title: 'Admin · dd-cons' };
 export const dynamic = 'force-dynamic';
@@ -27,49 +27,66 @@ function formatDate(iso: string): string {
     : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default async function AdminPage() {
+// Actions redirect back with short codes; thrown Error messages are redacted
+// by Next.js in production, so this is the only way operators see a reason.
+const ERROR_MESSAGES: Record<string, string> = {
+  'email-required': 'Enter an email address to pre-authorize.',
+  'invalid-email': 'That does not look like a valid email address.',
+  'invalid-request': 'Invalid request — please retry from this page.',
+  'unknown-user': 'That user no longer exists.',
+  'self-remove': 'You cannot remove yourself.',
+  'admin-remove': 'Admins cannot be removed — revoke admin first.',
+  'self-role': 'You cannot change your own role.',
+  'role-locked':
+    'This admin is set by SHELL_ADMIN_EMAILS or first-user bootstrap and cannot be edited here.',
+};
+
+const NOTICE_MESSAGES: Record<string, string> = {
+  preauthorized: 'Email pre-authorized — access applies on their first sign-in.',
+  'granted-existing':
+    'That email already has an account, so the selected products were granted to it directly (see the table above).',
+  promoted: 'User promoted to admin.',
+  demoted: 'Admin role revoked.',
+};
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; notice?: string }>;
+}) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect('/sign-in');
   if (!isShellAdmin(session.user)) notFound();
+
+  const { error, notice } = await searchParams;
+  const errorMessage = error ? (ERROR_MESSAGES[error] ?? 'Something went wrong.') : null;
+  const noticeMessage = notice ? NOTICE_MESSAGES[notice] : null;
 
   const users = listUsers();
   const pending = listPendingGrants();
 
   return (
     <>
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="flex items-center gap-2 font-mono text-base font-semibold tracking-tight text-[var(--color-fg)]">
-            <span
-              aria-hidden="true"
-              className="inline-block h-2.5 w-2.5 rounded-sm bg-[var(--color-accent)]"
-            />
-            dd<span className="text-[var(--color-fg-muted)]">/</span>cons
-          </span>
-          <nav aria-label="Account">
-            <ul className="flex items-center gap-5 text-sm">
-              <li>
-                <Link
-                  href="/launch"
-                  className="text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
-                >
-                  Launcher
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/sign-out"
-                  className="text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
-                >
-                  Sign out
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <ShellNav active="admin" admin email={session.user.email} />
 
       <main id="main" className="mx-auto max-w-6xl px-6 py-12">
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mb-6 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+          >
+            {errorMessage}
+          </div>
+        )}
+        {noticeMessage && (
+          <div
+            role="status"
+            className="mb-6 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10 px-4 py-3 text-sm text-[var(--color-fg)]"
+          >
+            {noticeMessage}
+          </div>
+        )}
+
         <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-fg)]">
           User access
         </h1>
@@ -94,6 +111,7 @@ export default async function AdminPage() {
                       {p}
                     </th>
                   ))}
+                  <th scope="col" className="px-5 py-3 font-semibold">Role</th>
                   <th scope="col" className="px-5 py-3 font-semibold">
                     <span className="sr-only">Remove</span>
                   </th>
@@ -162,6 +180,37 @@ export default async function AdminPage() {
                           </td>
                         );
                       })}
+                      <td className="px-5 py-4">
+                        {u.adminLocked ? (
+                          <span className="text-xs text-[var(--color-fg-muted)]">
+                            admin (owner)
+                          </span>
+                        ) : isSelf ? (
+                          <span className="text-xs text-[var(--color-fg-muted)]">
+                            {u.isAdmin ? 'admin' : 'member'} (you)
+                          </span>
+                        ) : (
+                          <form action={setRole}>
+                            <input type="hidden" name="userId" value={u.id} />
+                            <input
+                              type="hidden"
+                              name="role"
+                              value={u.isAdmin ? 'member' : 'admin'}
+                            />
+                            <button
+                              type="submit"
+                              aria-label={`${u.isAdmin ? 'Revoke admin for' : 'Make admin:'} ${u.email}`}
+                              className={
+                                u.isAdmin
+                                  ? 'rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-xs font-semibold text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-hover)]'
+                                  : 'rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-fg-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-fg)]'
+                              }
+                            >
+                              {u.isAdmin ? 'Admin ✓' : 'Make admin'}
+                            </button>
+                          </form>
+                        )}
+                      </td>
                       <td className="px-5 py-4 text-right">
                         {!u.isAdmin && !isSelf && (
                           <form action={removeUser}>
