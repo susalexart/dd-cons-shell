@@ -9,15 +9,15 @@
  */
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ShellNav } from '../../components/shell-nav';
 import { auth } from '../../lib/auth';
 import {
   fetchConsultingEngagements,
   fetchDevProjects,
   type PendingGate,
 } from '../../lib/board';
-import { effectiveProducts, type ProductId } from '../../lib/entitlements';
+import { effectiveProducts, isShellAdmin, type ProductId } from '../../lib/entitlements';
 
 export const metadata: Metadata = { title: 'Workspace · dd-cons' };
 export const dynamic = 'force-dynamic';
@@ -211,37 +211,7 @@ export default async function WorkspacePage() {
 
   return (
     <>
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="flex items-center gap-2 font-mono text-base font-semibold tracking-tight text-[var(--color-fg)]">
-            <span
-              aria-hidden="true"
-              className="inline-block h-2.5 w-2.5 rounded-sm bg-[var(--color-accent)]"
-            />
-            dd<span className="text-[var(--color-fg-muted)]">/</span>cons
-          </span>
-          <nav aria-label="Account">
-            <ul className="flex items-center gap-5 text-sm">
-              <li>
-                <Link
-                  href="/launch"
-                  className="text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
-                >
-                  Launcher
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/sign-out"
-                  className="text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
-                >
-                  Sign out
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <ShellNav active="workspace" admin={isShellAdmin(user)} email={user.email} />
 
       <main className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-fg)]">Workspace</h1>
