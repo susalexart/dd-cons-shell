@@ -206,7 +206,7 @@ export default async function WorkspacePage() {
     pendingGate: e.pendingGate,
     lastTs: e.lastTs,
     meta: e.lastType,
-    href: `${consultingPublic}/engagements`,
+    href: `${consultingPublic}/engagements/${encodeURIComponent(e.projectId)}`,
   }));
 
   return (
