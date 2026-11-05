@@ -71,8 +71,8 @@ function Footer() {
     <footer className="border-t border-[var(--color-border)] bg-[var(--color-bg)] py-10 text-sm text-[var(--color-fg-muted)]">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 md:flex-row md:items-center md:justify-between">
         <p>
-          <span className="font-mono text-[var(--color-fg)]">dd-cons</span> ·
-          self-hosted, audited AI tooling
+          <span className="font-mono text-[var(--color-fg)]">dd-cons</span> · self-hosted, audited
+          AI tooling
         </p>
         <nav aria-label="Legal">
           <ul className="flex flex-wrap gap-5">

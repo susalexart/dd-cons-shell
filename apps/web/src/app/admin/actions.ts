@@ -9,24 +9,24 @@
  * Error messages in production, so a throw shows operators a useless generic
  * error page even when the input problem is trivially explainable.
  */
-import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { database } from '../../db/sqlite';
 import { auth } from '../../lib/auth';
 import {
   deleteUserCascade,
   findUserByEmail,
   isLockedAdmin,
   isShellAdmin,
-  parseProducts,
   PRODUCT_IDS,
+  type ProductId,
+  parseProducts,
   removePendingGrant,
   setPendingGrant,
   setUserProducts,
   setUserRole,
-  type ProductId,
 } from '../../lib/entitlements';
-import { database } from '../../db/sqlite';
 
 async function requireAdmin() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -58,9 +58,9 @@ export async function toggleProduct(formData: FormData): Promise<void> {
   }
   const productId = product as ProductId;
 
-  const row = database
-    .prepare('SELECT "products" FROM "user" WHERE "id" = ?')
-    .get(userId) as { products: string | null } | undefined;
+  const row = database.prepare('SELECT "products" FROM "user" WHERE "id" = ?').get(userId) as
+    | { products: string | null }
+    | undefined;
   if (!row) backWithError('unknown-user');
 
   const current = parseProducts(row.products);
@@ -110,9 +110,9 @@ export async function setRole(formData: FormData): Promise<void> {
     backWithError('self-role');
   }
 
-  const target = database
-    .prepare('SELECT "id", "email" FROM "user" WHERE "id" = ?')
-    .get(userId) as { id: string; email: string } | undefined;
+  const target = database.prepare('SELECT "id", "email" FROM "user" WHERE "id" = ?').get(userId) as
+    | { id: string; email: string }
+    | undefined;
   if (!target) backWithError('unknown-user');
   if (isLockedAdmin(target)) {
     // Env-list / first-user adminness doesn't live in the DB — the role
@@ -140,9 +140,9 @@ export async function addPendingGrant(formData: FormData): Promise<void> {
   // (merged with whatever they already have) instead of erroring.
   const existing = findUserByEmail(email);
   if (existing) {
-    const row = database
-      .prepare('SELECT "products" FROM "user" WHERE "id" = ?')
-      .get(existing.id) as { products: string | null } | undefined;
+    const row = database.prepare('SELECT "products" FROM "user" WHERE "id" = ?').get(existing.id) as
+      | { products: string | null }
+      | undefined;
     const merged = [...new Set([...parseProducts(row?.products ?? null), ...products])];
     setUserProducts(existing.id, merged);
     backWithNotice('granted-existing');

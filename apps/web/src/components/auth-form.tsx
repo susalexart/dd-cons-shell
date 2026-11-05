@@ -17,7 +17,8 @@ type Mode = 'sign-in' | 'sign-up';
 export function AuthForm({ mode }: { mode: Mode }) {
   const params = useSearchParams();
   const dest = params.get('dest');
-  const callbackURL = resolvePostAuthRoute(dest);
+  const next = params.get('next');
+  const callbackURL = resolvePostAuthRoute(dest, next);
 
   const [loading, setLoading] = useState<'github' | 'google' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +30,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       await authClient.signIn.social({ provider, callbackURL });
       // better-auth navigates the window for OAuth — control rarely returns here.
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Sign-in failed. Please try again.',
-      );
+      setError(e instanceof Error ? e.message : 'Sign-in failed. Please try again.');
       setLoading(null);
     }
   }
@@ -88,7 +87,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           <>
             New here?{' '}
             <a
-              href={`/sign-up${dest ? `?dest=${dest}` : ''}`}
+              href={`/sign-up${dest || next ? `?${new URLSearchParams({ ...(dest ? { dest } : {}), ...(next ? { next } : {}) })}` : ''}`}
               className="text-[var(--color-accent)] underline underline-offset-4"
             >
               Create an account
@@ -99,7 +98,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           <>
             Already have an account?{' '}
             <a
-              href={`/sign-in${dest ? `?dest=${dest}` : ''}`}
+              href={`/sign-in${dest || next ? `?${new URLSearchParams({ ...(dest ? { dest } : {}), ...(next ? { next } : {}) })}` : ''}`}
               className="text-[var(--color-accent)] underline underline-offset-4"
             >
               Sign in

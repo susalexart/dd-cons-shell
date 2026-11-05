@@ -29,9 +29,12 @@ export function serviceLinks(product: ProductId): ServiceLink[] {
 
   if (product === 'dev-division') {
     const links: ServiceLink[] = [];
-    if (langfuse) links.push({ label: 'Langfuse', href: langfuse, external: true, note: 'LLM observability' });
-    if (forgejo) links.push({ label: 'Forgejo', href: forgejo, external: true, note: 'Git hosting' });
-    if (dokploy) links.push({ label: 'Dokploy', href: dokploy, external: true, note: 'Deployments' });
+    if (langfuse)
+      links.push({ label: 'Langfuse', href: langfuse, external: true, note: 'LLM observability' });
+    if (forgejo)
+      links.push({ label: 'Forgejo', href: forgejo, external: true, note: 'Git hosting' });
+    if (dokploy)
+      links.push({ label: 'Dokploy', href: dokploy, external: true, note: 'Deployments' });
     links.push({
       label: 'Mastra Studio',
       href: '/dev-division/dashboard',

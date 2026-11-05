@@ -12,7 +12,10 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // Browser extensions (wallet extensions especially) inject attributes
+    // onto <html> before React hydrates. Suppress only this element's
+    // attribute mismatch; it is not an app bug.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

@@ -16,8 +16,13 @@ import {
   scrollToTarget,
 } from '../motion/motion-core';
 
-const SECTORS = ['ORBIT', 'TERRAIN', 'WORKFORCE', 'CORE', 'ARRIVAL'];
-const SECTOR_TARGETS = ['#hero', '#terrain', '#agents', '#core', '#arrival'];
+const SECTORS: ReadonlyArray<{ label: string; target: string }> = [
+  { label: 'ORBIT', target: '#hero' },
+  { label: 'TERRAIN', target: '#terrain' },
+  { label: 'WORKFORCE', target: '#agents' },
+  { label: 'CORE', target: '#core' },
+  { label: 'ARRIVAL', target: '#arrival' },
+];
 
 export function Journey() {
   const root = useRef<HTMLDivElement>(null);
@@ -55,7 +60,13 @@ export function Journey() {
       /* ---------- HERO ---------- */
       gsap
         .timeline()
-        .to('#hero .hero-title span span', { y: 0, duration: 1.1, stagger: 0.12, ease: 'power4.out', delay: 0.2 })
+        .to('#hero .hero-title span span', {
+          y: 0,
+          duration: 1.1,
+          stagger: 0.12,
+          ease: 'power4.out',
+          delay: 0.2,
+        })
         .from('#hero .eyebrow', { opacity: 0, y: 14, duration: 0.6 }, '-=.7')
         .from('#hero .hero-sub', { opacity: 0, y: 14, duration: 0.6 }, '-=.4');
       gsap.fromTo('#hero .bg', { scale: 1.25 }, { scale: 1.05, duration: 2.2, ease: 'power2.out' });
@@ -64,7 +75,14 @@ export function Journey() {
           yPercent: 14,
           scale: 1.18,
           ease: 'none',
-          scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true, onLeaveBack: () => setSector(0), onLeave: () => setSector(1) },
+          scrollTrigger: {
+            trigger: '#hero',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
+            onLeaveBack: () => setSector(0),
+            onLeave: () => setSector(1),
+          },
         });
         gsap.to('#hero .inner', {
           yPercent: -30,
@@ -80,13 +98,40 @@ export function Journey() {
         if (s0 && s1 && s2) {
           gsap.set(s0, { opacity: 1, visibility: 'visible' });
           const tl = gsap.timeline({
-            scrollTrigger: { trigger: '#terrain', start: 'top top', end: '+=2600', pin: true, scrub: 1, anticipatePin: 1, onEnter: () => setSector(1), onEnterBack: () => setSector(1) },
+            scrollTrigger: {
+              trigger: '#terrain',
+              start: 'top top',
+              end: '+=2600',
+              pin: true,
+              scrub: 1,
+              anticipatePin: 1,
+              onEnter: () => setSector(1),
+              onEnterBack: () => setSector(1),
+            },
           });
           tl.to('#terrain .bg', { xPercent: -16, ease: 'none', duration: 3 }, 0)
-            .to(s0, { opacity: 0, y: -26, visibility: 'hidden', duration: 0.6, ease: 'power1.in' }, 0.8)
-            .fromTo(s1, { opacity: 0, y: 34, visibility: 'hidden' }, { opacity: 1, y: 0, visibility: 'visible', duration: 0.6, ease: 'power1.out' }, 1.25)
-            .to(s1, { opacity: 0, y: -26, visibility: 'hidden', duration: 0.6, ease: 'power1.in' }, 1.95)
-            .fromTo(s2, { opacity: 0, y: 34, visibility: 'hidden' }, { opacity: 1, y: 0, visibility: 'visible', duration: 0.6, ease: 'power1.out' }, 2.4);
+            .to(
+              s0,
+              { opacity: 0, y: -26, visibility: 'hidden', duration: 0.6, ease: 'power1.in' },
+              0.8,
+            )
+            .fromTo(
+              s1,
+              { opacity: 0, y: 34, visibility: 'hidden' },
+              { opacity: 1, y: 0, visibility: 'visible', duration: 0.6, ease: 'power1.out' },
+              1.25,
+            )
+            .to(
+              s1,
+              { opacity: 0, y: -26, visibility: 'hidden', duration: 0.6, ease: 'power1.in' },
+              1.95,
+            )
+            .fromTo(
+              s2,
+              { opacity: 0, y: 34, visibility: 'hidden' },
+              { opacity: 1, y: 0, visibility: 'visible', duration: 0.6, ease: 'power1.out' },
+              2.4,
+            );
         }
       }
 
@@ -94,9 +139,26 @@ export function Journey() {
       if (!reduced) {
         gsap
           .timeline({
-            scrollTrigger: { trigger: '#agents', start: 'top top', end: '+=1800', pin: true, scrub: 1, anticipatePin: 1, onEnter: () => setSector(2), onEnterBack: () => setSector(2) },
+            scrollTrigger: {
+              trigger: '#agents',
+              start: 'top top',
+              end: '+=1800',
+              pin: true,
+              scrub: 1,
+              anticipatePin: 1,
+              onEnter: () => setSector(2),
+              onEnterBack: () => setSector(2),
+            },
           })
-          .to('#agents .bg', { clipPath: 'polygon(0 0,100% 0,100% 100%,0 100%)', ease: 'power2.inOut', duration: 1.4 }, 0)
+          .to(
+            '#agents .bg',
+            {
+              clipPath: 'polygon(0 0,100% 0,100% 100%,0 100%)',
+              ease: 'power2.inOut',
+              duration: 1.4,
+            },
+            0,
+          )
           .from('#agents h2', { x: -60, opacity: 0, duration: 0.8 }, 0.2)
           .from('#agents .lede', { x: -40, opacity: 0, duration: 0.7 }, 0.5)
           .from('#agents .stat', { y: 40, opacity: 0, stagger: 0.2, duration: 0.6 }, 0.8)
@@ -107,13 +169,22 @@ export function Journey() {
           once: true,
           onEnter() {
             document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
-              gsap.fromTo(el, { innerText: 0 }, { innerText: +el.dataset.count!, duration: 1.6, ease: 'power1.out', snap: { innerText: 1 } });
+              gsap.fromTo(
+                el,
+                { innerText: 0 },
+                {
+                  innerText: Number(el.dataset.count ?? 0),
+                  duration: 1.6,
+                  ease: 'power1.out',
+                  snap: { innerText: 1 },
+                },
+              );
             });
           },
         });
       } else {
         document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
-          el.textContent = el.dataset.count!;
+          el.textContent = el.dataset.count ?? '';
         });
       }
 
@@ -146,7 +217,17 @@ export function Journey() {
           .to('#coreDim', { opacity: 0, ease: 'power1.in', duration: 2.2 }, 0)
           .from('#core .inner > *', { y: 50, opacity: 0, stagger: 0.15, duration: 0.7 }, 0.1)
           .to('#core .warp-line', { opacity: 1, stagger: 0.3, duration: 0.4 }, 0.9)
-          .to('#core .warp-line', { xPercent: (i: number) => (i % 2 ? -160 : 160), opacity: 0, stagger: 0.2, duration: 1, ease: 'power2.in' }, 1.6)
+          .to(
+            '#core .warp-line',
+            {
+              xPercent: (i: number) => (i % 2 ? -160 : 160),
+              opacity: 0,
+              stagger: 0.2,
+              duration: 1,
+              ease: 'power2.in',
+            },
+            1.6,
+          )
           .to('#core .inner', { scale: 1.15, opacity: 0, duration: 0.8 }, 2.2);
       }
 
@@ -189,15 +270,15 @@ export function Journey() {
       </div>
 
       <div className="hud">
-        <div aria-hidden="true">DD // MISSION CONSOLE</div>
+        <div aria-hidden="true">{'DD // MISSION CONSOLE'}</div>
         <nav className="hud-nav" aria-label="Journey sections">
-          {SECTORS.map((label, i) => (
+          {SECTORS.map(({ label, target }, i) => (
             <button
               key={label}
               type="button"
               className={i === 0 ? 'active' : undefined}
               aria-current={i === 0 ? 'true' : undefined}
-              onClick={() => scrollToTarget(SECTOR_TARGETS[i]!)}
+              onClick={() => scrollToTarget(target)}
             >
               {label}
             </button>
@@ -223,7 +304,8 @@ export function Journey() {
             </span>
           </h1>
           <p className="hero-sub">
-            TWO AGENTIC PRODUCTS · ONE BRAIN — <span style={{ color: 'var(--color-accent)' }}>DEV DIVISION</span> BUILDS,{' '}
+            TWO AGENTIC PRODUCTS · ONE BRAIN —{' '}
+            <span style={{ color: 'var(--color-accent)' }}>DEV DIVISION</span> BUILDS,{' '}
             <span style={{ color: 'var(--color-violet)' }}>CONSULTING</span> GUIDES.
           </p>
         </div>
@@ -244,19 +326,22 @@ export function Journey() {
             <div className="step" data-step="0">
               <div className="idx">01 / DISCOVER</div>
               <p className="lede">
-                Every engagement starts on the ground. We audit your stack, your workflows, and the friction your teams have learned to live with.
+                Every engagement starts on the ground. We audit your stack, your workflows, and the
+                friction your teams have learned to live with.
               </p>
             </div>
             <div className="step" data-step="1">
               <div className="idx">02 / DESIGN</div>
               <p className="lede">
-                Then we draw the city that should exist — an architecture where autonomous agents own the repetitive work and humans own the judgment.
+                Then we draw the city that should exist — an architecture where autonomous agents
+                own the repetitive work and humans own the judgment.
               </p>
             </div>
             <div className="step" data-step="2">
               <div className="idx">03 / DEPLOY</div>
               <p className="lede">
-                No slideware. We deliver running systems into your environment, wired to your tools, measured against your numbers.
+                No slideware. We deliver running systems into your environment, wired to your tools,
+                measured against your numbers.
               </p>
             </div>
           </div>
@@ -271,7 +356,8 @@ export function Journey() {
           <div className="eyebrow">Chapter 02 · The Workforce</div>
           <h2>Agents go to work</h2>
           <p className="lede">
-            Inside your workspace, coding agents plan, write, test, and review — around the clock, under your policies, with every action logged.
+            Inside your workspace, coding agents plan, write, test, and review — around the clock,
+            under your policies, with every action logged.
           </p>
           <div className="statgrid">
             <div className="stat">
@@ -317,7 +403,8 @@ export function Journey() {
           <div className="eyebrow">Chapter 03 · The Core</div>
           <h2>One orchestrated brain</h2>
           <p className="lede">
-            Every agent reports to a single mission core — scheduling, memory, guardrails — so the swarm moves like one engineer with a thousand hands.
+            Every agent reports to a single mission core — scheduling, memory, guardrails — so the
+            swarm moves like one engineer with a thousand hands.
           </p>
         </div>
       </section>
@@ -327,7 +414,10 @@ export function Journey() {
         <div className="inner">
           <div className="eyebrow">Arrival · Your Move</div>
           <h2>Step into the workspace</h2>
-          <p className="lede">The journey you just scrolled is the platform we run every day. Open the workspace, or bring us a problem.</p>
+          <p className="lede">
+            The journey you just scrolled is the platform we run every day. Open the workspace, or
+            bring us a problem.
+          </p>
           <div className="cta-row">
             <Link className="cta" href="/launch">
               Open Workspace
@@ -339,7 +429,9 @@ export function Journey() {
         </div>
       </section>
 
-      <footer className="journey-footer">DD CONSULTING — DEV DIVISION · AGENTIC SOFTWARE, DELIVERED</footer>
+      <footer className="journey-footer">
+        DD CONSULTING — DEV DIVISION · AGENTIC SOFTWARE, DELIVERED
+      </footer>
     </div>
   );
 }

@@ -41,7 +41,31 @@ export interface ConsultingEngagement {
 
 const FETCH_TIMEOUT_MS = 5_000;
 
-async function divisionGet<T>(base: string | undefined, path: string, cookie: string | null): Promise<T | null> {
+/**
+ * Division base URL. In compose the shell talks to service DNS; on a single
+ * host (the current systemd deployment) it talks to loopback; with neither
+ * env set it falls back to the product vhost. Previously an unset env made
+ * /workspace render every board as "unreachable".
+ */
+function divisionBase(envName: string, product: 'dev-division' | 'consulting'): string {
+  const explicit = process.env[envName]?.trim();
+  if (explicit) return explicit.replace(/\/+$/, '');
+
+  const domain =
+    process.env.DEPLOY_DOMAIN?.trim() ||
+    process.env.SHELL_COOKIE_DOMAIN?.trim().replace(/^\./, '') ||
+    'localhost';
+  if (domain === 'localhost') {
+    return product === 'dev-division' ? 'http://127.0.0.1:5173' : 'http://127.0.0.1:5174';
+  }
+  return `https://${product}.${domain}`;
+}
+
+async function divisionGet<T>(
+  base: string | undefined,
+  path: string,
+  cookie: string | null,
+): Promise<T | null> {
   if (!base) return null;
   try {
     const res = await fetch(`${base.replace(/\/+$/, '')}${path}`, {
@@ -58,7 +82,7 @@ async function divisionGet<T>(base: string | undefined, path: string, cookie: st
 
 export async function fetchDevProjects(cookie: string | null): Promise<DevProject[] | null> {
   const data = await divisionGet<DevProject[]>(
-    process.env.DEV_DIVISION_INTERNAL_URL,
+    divisionBase('DEV_DIVISION_INTERNAL_URL', 'dev-division'),
     '/api/projects',
     cookie,
   );
@@ -69,7 +93,7 @@ export async function fetchConsultingEngagements(
   cookie: string | null,
 ): Promise<ConsultingEngagement[] | null> {
   const data = await divisionGet<{ engagements: ConsultingEngagement[] }>(
-    process.env.CONSULTING_INTERNAL_URL,
+    divisionBase('CONSULTING_INTERNAL_URL', 'consulting'),
     '/api/consulting/engagements',
     cookie,
   );

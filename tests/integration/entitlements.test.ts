@@ -3,10 +3,11 @@
  * get-session contract test that pins the exact field names both products
  * (dev-division, consulting-agency) parse off the shell response.
  */
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 // Fresh temp dir BEFORE importing anything that opens the SQLite handle
 // (both auth.ts and entitlements.ts read process.cwd() at module load).
@@ -124,9 +125,7 @@ describe('admin resolution', () => {
 
 describe('effectiveProducts', () => {
   it('admins implicitly have every product', () => {
-    expect(effectiveProducts({ ...firstUser, products: '[]' })).toEqual([
-      ...PRODUCT_IDS,
-    ]);
+    expect(effectiveProducts({ ...firstUser, products: '[]' })).toEqual([...PRODUCT_IDS]);
   });
 
   it('non-admins get exactly their granted list', () => {

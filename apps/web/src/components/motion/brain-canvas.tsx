@@ -35,7 +35,7 @@ function mkFiber(a: Node, b: Node, col: string): Fiber {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const len = Math.hypot(dx, dy) || 1;
-  const bow = len * 0.18 * ((((a.x + b.y) | 0) % 2) ? 1 : -1);
+  const bow = len * 0.18 * (((a.x + b.y) | 0) % 2 ? 1 : -1);
   return { a, b, col, c: { x: mx - (dy / len) * bow, y: my + (dx / len) * bow } };
 }
 
@@ -43,10 +43,14 @@ export function BrainCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const cv = ref.current;
-    if (!cv) return;
-    const cx = cv.getContext('2d');
-    if (!cx) return;
+    const canvas = ref.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    // Re-bind as non-nullable types: TS does not carry the guards above into
+    // the hoisted function declarations below.
+    const cv: HTMLCanvasElement = canvas;
+    const cx: CanvasRenderingContext2D = context;
 
     const reduced = prefersReducedMotion();
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -59,7 +63,14 @@ export function BrainCanvas() {
     let rafOn = true;
     let rafId = 0;
 
-    function buildRing(hub: Node, col: string, phase: number, count: number, rad: number, ri: number): Node[] {
+    function buildRing(
+      hub: Node,
+      col: string,
+      phase: number,
+      count: number,
+      rad: number,
+      ri: number,
+    ): Node[] {
       const arr: Node[] = [];
       for (let i = 0; i < count; i++) {
         const a = (i / count) * Math.PI * 2 + phase + ri * 0.4;
@@ -80,7 +91,7 @@ export function BrainCanvas() {
       nodes.push(hub);
       const inner = buildRing(hub, col, phase, 6, Math.min(W, H) * 0.14, 0);
       const outer = buildRing(hub, col, phase, 9, Math.min(W, H) * 0.26, 1);
-      inner.forEach((n) => fibers.push(mkFiber(n, hub, col)));
+      for (const n of inner) fibers.push(mkFiber(n, hub, col));
       outer.forEach((n, i) => {
         const target = inner[i % inner.length];
         if (target) fibers.push(mkFiber(n, target, col));
@@ -94,18 +105,34 @@ export function BrainCanvas() {
     function buildNetwork() {
       W = window.innerWidth;
       H = window.innerHeight;
-      cv!.width = W * DPR;
-      cv!.height = H * DPR;
-      cv!.style.width = `${W}px`;
-      cv!.style.height = `${H}px`;
-      cx!.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cv.width = W * DPR;
+      cv.height = H * DPR;
+      cv.style.width = `${W}px`;
+      cv.style.height = `${H}px`;
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
       nodes = [];
       fibers = [];
       pulses = [];
 
       const narrow = W < 760;
-      const hubDev: Node = { x: W * (narrow ? 0.5 : 0.3), y: H * (narrow ? 0.3 : 0.46), r: 5, hub: true, glow: 0, col: CYAN, label: 'DEV DIVISION' };
-      const hubCon: Node = { x: W * (narrow ? 0.5 : 0.7), y: H * (narrow ? 0.72 : 0.46), r: 5, hub: true, glow: 0, col: ORANGE, label: 'CONSULTING' };
+      const hubDev: Node = {
+        x: W * (narrow ? 0.5 : 0.3),
+        y: H * (narrow ? 0.3 : 0.46),
+        r: 5,
+        hub: true,
+        glow: 0,
+        col: CYAN,
+        label: 'DEV DIVISION',
+      };
+      const hubCon: Node = {
+        x: W * (narrow ? 0.5 : 0.7),
+        y: H * (narrow ? 0.72 : 0.46),
+        r: 5,
+        hub: true,
+        glow: 0,
+        col: ORANGE,
+        label: 'CONSULTING',
+      };
       buildHemisphere(hubDev, CYAN, 0.2);
       buildHemisphere(hubCon, ORANGE, 0.75);
 
@@ -119,7 +146,8 @@ export function BrainCanvas() {
       staticLayer = document.createElement('canvas');
       staticLayer.width = W * DPR;
       staticLayer.height = H * DPR;
-      const sx = staticLayer.getContext('2d')!;
+      const sx = staticLayer.getContext('2d');
+      if (!sx) return;
       sx.setTransform(DPR, 0, 0, DPR, 0, 0);
       fibers.forEach((f) => {
         sx.lineWidth = f.bridge ? 1 : 0.7;
@@ -143,7 +171,7 @@ export function BrainCanvas() {
       sx.textAlign = 'center';
       [hubDev, hubCon].forEach((h) => {
         sx.fillStyle = `rgba(${h.col},.55)`;
-        sx.fillText(h.label!, h.x, h.y + 22);
+        sx.fillText(h.label ?? '', h.x, h.y + 22);
         sx.strokeStyle = `rgba(${h.col},.4)`;
         sx.lineWidth = 1;
         sx.beginPath();
@@ -168,15 +196,15 @@ export function BrainCanvas() {
 
       // Reduced motion: draw the static mesh once, no pulse loop.
       if (reduced) {
-        cx!.clearRect(0, 0, W, H);
-        cx!.drawImage(staticLayer, 0, 0, W, H);
+        cx.clearRect(0, 0, W, H);
+        cx.drawImage(staticLayer, 0, 0, W, H);
       }
     }
 
     function loop() {
       if (!rafOn) return;
-      cx!.clearRect(0, 0, W, H);
-      if (staticLayer) cx!.drawImage(staticLayer, 0, 0, W, H);
+      cx.clearRect(0, 0, W, H);
+      if (staticLayer) cx.drawImage(staticLayer, 0, 0, W, H);
 
       for (const p of pulses) {
         p.t += p.speed * p.dir * (1 + brainState.warp * 9);
@@ -187,26 +215,26 @@ export function BrainCanvas() {
         }
         const pos = bez(p.f.a, p.f.c, p.f.b, p.t);
         const tail = bez(p.f.a, p.f.c, p.f.b, Math.max(0, Math.min(1, p.t - 0.05 * p.dir)));
-        const g = cx!.createLinearGradient(tail.x, tail.y, pos.x, pos.y);
+        const g = cx.createLinearGradient(tail.x, tail.y, pos.x, pos.y);
         g.addColorStop(0, `rgba(${p.c},0)`);
         g.addColorStop(1, `rgba(${p.c},.85)`);
-        cx!.strokeStyle = g;
-        cx!.lineWidth = p.f.bridge ? 1.8 : 1.4;
-        cx!.beginPath();
-        cx!.moveTo(tail.x, tail.y);
-        cx!.lineTo(pos.x, pos.y);
-        cx!.stroke();
-        cx!.fillStyle = `rgba(${p.c},.95)`;
-        cx!.beginPath();
-        cx!.arc(pos.x, pos.y, p.f.bridge ? 2 : 1.6, 0, 7);
-        cx!.fill();
+        cx.strokeStyle = g;
+        cx.lineWidth = p.f.bridge ? 1.8 : 1.4;
+        cx.beginPath();
+        cx.moveTo(tail.x, tail.y);
+        cx.lineTo(pos.x, pos.y);
+        cx.stroke();
+        cx.fillStyle = `rgba(${p.c},.95)`;
+        cx.beginPath();
+        cx.arc(pos.x, pos.y, p.f.bridge ? 2 : 1.6, 0, 7);
+        cx.fill();
       }
       for (const n of nodes) {
         if (n.glow > 0.01) {
-          cx!.fillStyle = `rgba(${n.col},${n.glow * 0.5})`;
-          cx!.beginPath();
-          cx!.arc(n.x, n.y, n.r + 4 * n.glow, 0, 7);
-          cx!.fill();
+          cx.fillStyle = `rgba(${n.col},${n.glow * 0.5})`;
+          cx.beginPath();
+          cx.arc(n.x, n.y, n.r + 4 * n.glow, 0, 7);
+          cx.fill();
           n.glow *= 0.92;
         }
       }
@@ -236,5 +264,5 @@ export function BrainCanvas() {
     };
   }, []);
 
-  return <canvas id="stars" ref={ref} aria-hidden="true" />;
+  return <canvas id="stars" ref={ref} tabIndex={-1} aria-hidden="true" />;
 }

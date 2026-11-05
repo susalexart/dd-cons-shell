@@ -1,27 +1,28 @@
 # dd-cons-shell
 
-Umbrella shell that hosts `dd-cons.aroma-cloud.online` — the single sign-in,
-marketing, and pricing surface for both **dev-division** and
-**consulting-agency**.
+Umbrella shell for the public umbrella domain (`SHELL_BETTER_AUTH_URL`) — the
+single sign-in, marketing, and pricing surface for both
+[**dev-division**](../dev-devison) and [**consulting-agency**](../consulting-agency).
 
 This repo owns:
 
 - **Auth issuer** — better-auth with GitHub + Google providers. Session cookie
-  is set on `.dd-cons.aroma-cloud.online` so both sub-paths (`/dev-division/*`
-  and `/consulting/*`) can verify it via `/api/auth/get-session`.
+  is set on the umbrella apex (derived from `SHELL_BETTER_AUTH_URL`, or
+  `SHELL_COOKIE_DOMAIN`) so both sub-paths (`/dev-division/*` and
+  `/consulting/*`) can verify it via `/api/auth/get-session`.
 - **Marketing + pricing pages** (added in Phase 26).
 - The reserved `umbrellaSubs` JSON column on the user row, which Phase 26+ will
   use for Stripe state (parked in v1.5).
 
 This repo does **not** own:
 
-- Dev-division's workspace/RBAC tables (stay in `/home/ubuntu/dev-devision`).
+- Dev-division's workspace/RBAC tables (stay in [`../dev-devison`](../dev-devison)).
 - Consulting-agency's engagement tables (stay in
-  `/home/ubuntu/consulting-agency`).
+  [`../consulting-agency`](../consulting-agency)).
 - Caddy/Docker Compose wiring (Phase 28/29).
 
 The full milestone brief lives in dev-division at
-[`.planning/v1.4-umbrella-dashboard.md`](../dev-devision/.planning/v1.4-umbrella-dashboard.md).
+[`.planning/v1.4-umbrella-dashboard.md`](../dev-devison/.planning/v1.4-umbrella-dashboard.md).
 
 ## Layout
 

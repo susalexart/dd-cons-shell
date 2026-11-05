@@ -2,7 +2,7 @@
   "name": "dd-cons-shell",
   "version": "0.1.0",
   "private": true,
-  "description": "Umbrella shell for dd-cons.aroma-cloud.online — better-auth issuer + marketing/pricing chrome for dev-division and consulting-agency.",
+  "description": "Umbrella shell — better-auth issuer + marketing/pricing chrome for ../dev-devison and ../consulting-agency.",
   "packageManager": "pnpm@11.5.0",
   "engines": {
     "node": ">=22.12"

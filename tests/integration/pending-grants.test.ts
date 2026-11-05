@@ -5,10 +5,11 @@
  * because that is the path that fires databaseHooks.user.create — the same
  * path OAuth sign-up uses. Plain adapter.create bypasses hooks.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // Fresh temp dir BEFORE importing anything that opens the SQLite handle
 // (both auth.ts and entitlements.ts read process.cwd() at module load).
@@ -86,18 +87,18 @@ describe('signup hook applies pending grants', () => {
     setPendingGrant('granted@example.test', ['dev-division']);
     const user = await createUserViaHooks('granted@example.test');
 
-    const row = database
-      .prepare('SELECT "products" FROM "user" WHERE "id" = ?')
-      .get(user.id) as { products: string | null };
+    const row = database.prepare('SELECT "products" FROM "user" WHERE "id" = ?').get(user.id) as {
+      products: string | null;
+    };
     expect(parseProducts(row.products)).toEqual(['dev-division']);
     expect(getPendingGrant('granted@example.test')).toBeNull();
   });
 
   it('an email without a pending grant signs up with no products', async () => {
     const user = await createUserViaHooks('ungrated@example.test');
-    const row = database
-      .prepare('SELECT "products" FROM "user" WHERE "id" = ?')
-      .get(user.id) as { products: string | null };
+    const row = database.prepare('SELECT "products" FROM "user" WHERE "id" = ?').get(user.id) as {
+      products: string | null;
+    };
     expect(parseProducts(row.products)).toEqual([]);
   });
 });
