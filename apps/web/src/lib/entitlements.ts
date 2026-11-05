@@ -76,9 +76,9 @@ export function isLockedAdmin(user: Pick<EntitlementUser, 'id' | 'email'>): bool
 
 function getUserRole(userId: string): string | null {
   try {
-    const row = database
-      .prepare('SELECT "role" FROM "user" WHERE "id" = ?')
-      .get(userId) as { role: string | null } | undefined;
+    const row = database.prepare('SELECT "role" FROM "user" WHERE "id" = ?').get(userId) as
+      | { role: string | null }
+      | undefined;
     return row?.role ?? null;
   } catch {
     // pre-migration DB without the role column

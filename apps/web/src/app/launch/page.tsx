@@ -79,14 +79,11 @@ export default async function LaunchPage({
         </p>
 
         {entitled.size === 0 && (
-          <div
-            role="status"
-            className="glass mt-8 rounded-xl px-6 py-5 text-[var(--color-fg)]"
-          >
+          <div role="status" className="glass mt-8 rounded-xl px-6 py-5 text-[var(--color-fg)]">
             <p className="font-semibold">Your account is awaiting access.</p>
             <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
-              Your sign-up is visible to the workspace admins — once they grant
-              you a product, it will unlock here automatically.
+              Your sign-up is visible to the workspace admins — once they grant you a product, it
+              will unlock here automatically.
             </p>
           </div>
         )}
@@ -99,9 +96,7 @@ export default async function LaunchPage({
             return (
               <section
                 key={id}
-                aria-label={
-                  open ? meta.name : `${meta.name} (locked — access not granted)`
-                }
+                aria-label={open ? meta.name : `${meta.name} (locked — access not granted)`}
                 className={`glass relative flex flex-col rounded-xl p-6 transition-shadow ${
                   open ? meta.glow : 'opacity-60'
                 } ${isHighlighted ? 'ring-2 ring-[var(--color-accent)]' : ''}`}
@@ -136,8 +131,7 @@ export default async function LaunchPage({
                   </Link>
                 ) : (
                   <p className="mt-6 text-sm text-[var(--color-fg-muted)]">
-                    You don&apos;t have access yet — ask your workspace admin to
-                    grant it.
+                    You don&apos;t have access yet — ask your workspace admin to grant it.
                   </p>
                 )}
 
@@ -151,9 +145,7 @@ export default async function LaunchPage({
                         <li key={svc.label}>
                           <a
                             href={svc.href}
-                            {...(svc.external
-                              ? { target: '_blank', rel: 'noopener' }
-                              : {})}
+                            {...(svc.external ? { target: '_blank', rel: 'noopener' } : {})}
                             title={svc.note}
                             className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-fg)] hover:border-[var(--color-accent)]"
                           >

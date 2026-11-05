@@ -14,7 +14,7 @@
  * Both tests boot the Next dev server on an ephemeral port. They share the same
  * lifecycle hooks to keep CI under a minute.
  */
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const APP_DIR = new URL('../../apps/web', import.meta.url).pathname;
@@ -109,8 +109,12 @@ describe('P26 — /pricing renders both tier columns', () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toMatch(/<canvas id="stars"[^>]*aria-hidden="true"/);
-    expect(html).toMatch(/class="grain"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="grain"/);
-    expect(html).toMatch(/class="spine"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="spine"/);
+    expect(html).toMatch(
+      /class="grain"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="grain"/,
+    );
+    expect(html).toMatch(
+      /class="spine"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="spine"/,
+    );
     expect(html).toMatch(/class="hud"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="hud"/);
   });
 

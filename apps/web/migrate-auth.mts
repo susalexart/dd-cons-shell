@@ -12,6 +12,6 @@ const db = new Database('.shell-auth/shell-auth.db');
 const tables = db
   .prepare("select name from sqlite_master where type='table'")
   .all()
-  .map((r: any) => r.name);
+  .map((r) => (r as { name: string }).name);
 console.log('[migrate] tables:', tables.join(', '));
 db.close();

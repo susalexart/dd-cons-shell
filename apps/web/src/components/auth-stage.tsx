@@ -24,6 +24,7 @@ export function AuthStage({ children }: { children: ReactNode }) {
         loop
         playsInline
         preload="metadata"
+        tabIndex={-1}
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
         style={{ opacity: 0.4, filter: 'blur(2px)' }}
@@ -44,8 +45,7 @@ export function AuthStage({ children }: { children: ReactNode }) {
         <div
           className="glass w-full p-2 shadow-2xl"
           style={{
-            background:
-              'color-mix(in oklch, var(--color-bg) 78%, transparent)',
+            background: 'color-mix(in oklch, var(--color-bg) 78%, transparent)',
           }}
         >
           {children}

@@ -6,9 +6,7 @@ type Tier = {
   price: string;
   tagline: string;
   features: string[];
-  cta:
-    | { kind: 'signup'; tier: string }
-    | { kind: 'sales' };
+  cta: { kind: 'signup'; tier: string } | { kind: 'sales' };
   highlighted?: boolean;
 };
 
@@ -152,16 +150,11 @@ function TierCard({
   // .gradient-ring (mask-composite ring trick defined in globals.css).
   const card = (
     <article
-      className={`glass relative flex flex-col p-6 ${
-        tier.highlighted ? '' : ''
-      }`}
+      className={`glass relative flex flex-col p-6 ${tier.highlighted ? '' : ''}`}
       aria-labelledby={`${product}-${tier.name.toLowerCase()}-name`}
     >
       <div className="flex items-baseline justify-between">
-        <h3
-          id={`${product}-${tier.name.toLowerCase()}-name`}
-          className="text-lg font-semibold"
-        >
+        <h3 id={`${product}-${tier.name.toLowerCase()}-name`} className="text-lg font-semibold">
           {tier.name}
         </h3>
         {tier.highlighted && (
@@ -201,11 +194,7 @@ function TierCard({
   );
 
   if (tier.highlighted) {
-    return (
-      <div className="gradient-ring rounded-[14px]">
-        {card}
-      </div>
-    );
+    return <div className="gradient-ring rounded-[14px]">{card}</div>;
   }
   return card;
 }
@@ -220,18 +209,10 @@ export default function PricingPage() {
   return (
     <MarketingShell>
       {/* P26.6 — faint cathedral watermark fixed behind the whole page. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/hero/cathedral.jpg"
-        alt=""
-        aria-hidden="true"
-        className="cathedral-watermark"
-      />
+      {/* biome-ignore lint/performance/noImgElement: decorative fixed-position backdrop, not a sized content image */}
+      <img src="/hero/cathedral.jpg" alt="" aria-hidden="true" className="cathedral-watermark" />
       {/* P26.6 — slow mesh drift backdrop (same component as HeroStage). */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
-      >
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="mesh-bg" style={{ opacity: 0.35 }} />
       </div>
 
@@ -240,15 +221,14 @@ export default function PricingPage() {
           Pricing — pick a product, pick a tier.
         </h1>
         <p className="mt-4 max-w-2xl text-[var(--color-fg-muted)]">
-          Every tier ships the same audit invariant: per-project hash-chained
-          events with operator attribution. Higher tiers add seats, persistence,
-          and self-host options.
+          Every tier ships the same audit invariant: per-project hash-chained events with operator
+          attribution. Higher tiers add seats, persistence, and self-host options.
         </p>
       </section>
 
       <section className="relative mx-auto max-w-6xl px-6 pb-16">
         <div className="grid gap-10 md:grid-cols-2">
-          <div aria-labelledby="dev-division-heading">
+          <section aria-labelledby="dev-division-heading">
             <header className="mb-6">
               <h2
                 id="dev-division-heading"
@@ -256,9 +236,7 @@ export default function PricingPage() {
               >
                 Dev-Division
               </h2>
-              <p className="mt-1 text-xl font-semibold">
-                Idea → running code skeleton.
-              </p>
+              <p className="mt-1 text-xl font-semibold">Idea → running code skeleton.</p>
             </header>
             <div className="grid gap-4">
               {DEV_DIVISION_TIERS.map((t) => (
@@ -270,9 +248,9 @@ export default function PricingPage() {
                 />
               ))}
             </div>
-          </div>
+          </section>
 
-          <div aria-labelledby="consulting-heading">
+          <section aria-labelledby="consulting-heading">
             <header className="mb-6">
               <h2
                 id="consulting-heading"
@@ -280,27 +258,19 @@ export default function PricingPage() {
               >
                 Consulting-Team
               </h2>
-              <p className="mt-1 text-xl font-semibold">
-                Brief → cited deliverable.
-              </p>
+              <p className="mt-1 text-xl font-semibold">Brief → cited deliverable.</p>
             </header>
             <div className="grid gap-4">
               {CONSULTING_TIERS.map((t) => (
-                <TierCard
-                  key={t.name}
-                  product="consulting"
-                  tier={t}
-                  accent="var(--color-violet)"
-                />
+                <TierCard key={t.name} product="consulting" tier={t} accent="var(--color-violet)" />
               ))}
             </div>
-          </div>
+          </section>
         </div>
 
         <p className="mt-12 text-sm text-[var(--color-fg-muted)]">
-          No Stripe wiring yet — &ldquo;Start free&rdquo; lands you in the
-          product sign-up. Billing is a v1.5 phase. The{' '}
-          <code className="font-mono">umbrellaSubs</code> column on your user
+          No Stripe wiring yet — &ldquo;Start free&rdquo; lands you in the product sign-up. Billing
+          is a v1.5 phase. The <code className="font-mono">umbrellaSubs</code> column on your user
           row is reserved for it.
         </p>
       </section>

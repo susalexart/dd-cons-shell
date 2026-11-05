@@ -17,8 +17,7 @@ let initialized = false;
 
 export function prefersReducedMotion(): boolean {
   return (
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }
 
@@ -30,7 +29,7 @@ export function initMotion(): Lenis | null {
   if (prefersReducedMotion()) return null;
   lenis = new Lenis({
     duration: 1.15,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
     smoothWheel: true,
     syncTouch: false,
     wheelMultiplier: 0.9,

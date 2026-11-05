@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { initMotion } from './motion-core';
 
 /** Boots Lenis + ScrollTrigger once for the whole app (no-op when reduced motion). */

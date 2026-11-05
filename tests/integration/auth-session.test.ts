@@ -16,10 +16,11 @@
  * exactly what `toNextJsHandler` does inside the App Router route — so this
  * exercises the same surface dev-division + consulting-agency will hit.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // Force the SQLite handle to a fresh temp dir BEFORE we import the auth
 // instance — the module reads process.cwd() at top-level.
@@ -67,7 +68,6 @@ describe('P25 — /api/auth/get-session', () => {
 
     // 1. Create a user directly via better-auth's internal API.
     const email = `p25-${Date.now()}@example.test`;
-    const password = 'p25-smoke-test-password!!';
 
     // better-auth exposes a sign-up endpoint when email+password is on; since
     // we disabled it, we use the lower-level api.signUpEmail off the auth

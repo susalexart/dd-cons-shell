@@ -32,16 +32,16 @@ export function SignOutTrigger() {
   }, []);
 
   return (
-    <p
-      role="status"
-      aria-live="polite"
-      className="mt-6 text-sm text-[var(--color-fg-muted)]"
-    >
+    <p role="status" aria-live="polite" className="mt-6 text-sm text-[var(--color-fg-muted)]">
       {status === 'pending' && 'Working…'}
       {status === 'done' && 'Signed out. Redirecting…'}
       {status === 'error' && (
         <>
-          Sign-out failed. <a href="/" className="underline">Go home</a>.
+          Sign-out failed.{' '}
+          <a href="/" className="underline">
+            Go home
+          </a>
+          .
         </>
       )}
     </p>

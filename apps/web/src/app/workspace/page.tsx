@@ -12,11 +12,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ShellNav } from '../../components/shell-nav';
 import { auth } from '../../lib/auth';
-import {
-  fetchConsultingEngagements,
-  fetchDevProjects,
-  type PendingGate,
-} from '../../lib/board';
+import { fetchConsultingEngagements, fetchDevProjects, type PendingGate } from '../../lib/board';
 import { effectiveProducts, isShellAdmin, type ProductId } from '../../lib/entitlements';
 
 export const metadata: Metadata = { title: 'Workspace · dd-cons' };

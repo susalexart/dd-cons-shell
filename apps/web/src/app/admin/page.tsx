@@ -9,12 +9,7 @@ import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { ShellNav } from '../../components/shell-nav';
 import { auth } from '../../lib/auth';
-import {
-  isShellAdmin,
-  listPendingGrants,
-  listUsers,
-  PRODUCT_IDS,
-} from '../../lib/entitlements';
+import { isShellAdmin, listPendingGrants, listUsers, PRODUCT_IDS } from '../../lib/entitlements';
 import { addPendingGrant, removeUser, revokePendingGrant, setRole, toggleProduct } from './actions';
 
 export const metadata: Metadata = { title: 'Admin · dd-cons' };
@@ -91,8 +86,8 @@ export default async function AdminPage({
           User access
         </h1>
         <p className="mt-2 text-[var(--color-fg-muted)]">
-          {users.length} user{users.length === 1 ? '' : 's'} · grant or revoke
-          product access. Admins always have everything.
+          {users.length} user{users.length === 1 ? '' : 's'} · grant or revoke product access.
+          Admins always have everything.
         </p>
 
         {users.length === 0 ? (
@@ -104,14 +99,20 @@ export default async function AdminPage({
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)] text-xs uppercase tracking-wide text-[var(--color-fg-muted)]">
-                  <th scope="col" className="px-5 py-3 font-semibold">User</th>
-                  <th scope="col" className="px-5 py-3 font-semibold">Joined</th>
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    User
+                  </th>
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    Joined
+                  </th>
                   {PRODUCT_IDS.map((p) => (
                     <th scope="col" key={p} className="px-5 py-3 font-mono font-semibold">
                       {p}
                     </th>
                   ))}
-                  <th scope="col" className="px-5 py-3 font-semibold">Role</th>
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    Role
+                  </th>
                   <th scope="col" className="px-5 py-3 font-semibold">
                     <span className="sr-only">Remove</span>
                   </th>
@@ -129,9 +130,7 @@ export default async function AdminPage({
                         <div className="flex items-center gap-2 text-[var(--color-fg)]">
                           <span>{u.email}</span>
                           {isSelf && (
-                            <span className="text-xs text-[var(--color-fg-muted)]">
-                              (you)
-                            </span>
+                            <span className="text-xs text-[var(--color-fg-muted)]">(you)</span>
                           )}
                           {u.isAdmin && (
                             <span className="rounded-full bg-[var(--color-accent)] px-2 py-0.5 text-xs font-semibold text-[var(--color-accent-fg)]">
@@ -151,10 +150,7 @@ export default async function AdminPage({
                       {PRODUCT_IDS.map((p) => {
                         if (u.isAdmin) {
                           return (
-                            <td
-                              key={p}
-                              className="px-5 py-4 text-xs text-[var(--color-fg-muted)]"
-                            >
+                            <td key={p} className="px-5 py-4 text-xs text-[var(--color-fg-muted)]">
                               always (admin)
                             </td>
                           );
@@ -241,8 +237,8 @@ export default async function AdminPage({
             Pre-authorized emails
           </h2>
           <p className="mt-2 text-sm text-[var(--color-fg-muted)]">
-            Grant access before someone signs up. When they first sign in with a
-            matching email, the products below are applied automatically.
+            Grant access before someone signs up. When they first sign in with a matching email, the
+            products below are applied automatically.
           </p>
 
           <div className="glass mt-4 rounded-xl px-5 py-5">

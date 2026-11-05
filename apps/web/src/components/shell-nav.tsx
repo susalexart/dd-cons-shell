@@ -67,7 +67,10 @@ export function ShellNav({
                 </a>
               </li>
               <li>
-                <a href={`${consultingPublic}/`} className={`flex items-center gap-1.5 ${mutedLink}`}>
+                <a
+                  href={`${consultingPublic}/`}
+                  className={`flex items-center gap-1.5 ${mutedLink}`}
+                >
                   <span
                     aria-hidden="true"
                     className="inline-block h-2 w-2 rounded-sm bg-[var(--color-violet)]"
@@ -105,9 +108,7 @@ export function ShellNav({
         </div>
         <nav aria-label="Account">
           <ul className="flex items-center gap-5 text-sm">
-            {email && (
-              <li className="hidden text-[var(--color-fg-muted)] sm:block">{email}</li>
-            )}
+            {email && <li className="hidden text-[var(--color-fg-muted)] sm:block">{email}</li>}
             <li>
               <Link href="/sign-out" className={mutedLink}>
                 Sign out

@@ -19,7 +19,7 @@ export const POST_AUTH_ROUTES = {
 export const DEFAULT_POST_AUTH_ROUTE = '/launch';
 
 function isKnownDest(dest: string): dest is keyof typeof POST_AUTH_ROUTES {
-  return Object.prototype.hasOwnProperty.call(POST_AUTH_ROUTES, dest);
+  return Object.hasOwn(POST_AUTH_ROUTES, dest);
 }
 
 function isAllowedHost(hostname: string): boolean {

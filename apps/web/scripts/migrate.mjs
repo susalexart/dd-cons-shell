@@ -7,9 +7,10 @@
  *
  * Same DB path resolution as src/db/sqlite.ts.
  */
-import Database from 'better-sqlite3';
+
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import Database from 'better-sqlite3';
 
 const dbPath = resolve(process.cwd(), '.shell-auth', 'shell-auth.db');
 mkdirSync(dirname(dbPath), { recursive: true });
@@ -28,9 +29,7 @@ try {
     if (hasProducts) {
       console.log('[migrate] user.products already present — nothing to do');
     } else {
-      db.exec(
-        `ALTER TABLE "user" ADD COLUMN "products" text NOT NULL DEFAULT '[]'`,
-      );
+      db.exec(`ALTER TABLE "user" ADD COLUMN "products" text NOT NULL DEFAULT '[]'`);
       console.log('[migrate] added user.products (backfilled existing rows with [])');
     }
 
