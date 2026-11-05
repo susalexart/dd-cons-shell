@@ -1,0 +1,48 @@
+# Minimum-bar CI for dd-cons-shell (mirrors ../dev-devison/.github/workflows/ci.yml).
+#
+# Typecheck, lint, run the vitest integration project, then `next build`.
+# Node 22 matches package.json engines (>=22.12); pnpm 11 matches packageManager.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  # Harmless stand-ins so lib/auth.ts boots at build/test time. None of these
+  # are real credentials; `next build` and vitest never hit an OAuth provider.
+  SHELL_BETTER_AUTH_SECRET: ci-only-not-a-secret-32-chars-minimum-000000
+  SHELL_BETTER_AUTH_URL: http://localhost:3000
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test (integration)
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
