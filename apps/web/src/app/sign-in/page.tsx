@@ -14,14 +14,14 @@ export const metadata = {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dest?: string }>;
+  searchParams: Promise<{ dest?: string; next?: string }>;
 }) {
-  const { dest } = await searchParams;
+  const { dest, next } = await searchParams;
   // Already signed in? Skip the form — without this, a signed-in user who
   // revisits /sign-in re-runs OAuth and appears to "loop".
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) {
-    redirect(resolvePostAuthRoute(dest));
+    redirect(resolvePostAuthRoute(dest, next));
   }
 
   return (

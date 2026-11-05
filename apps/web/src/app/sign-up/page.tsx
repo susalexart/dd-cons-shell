@@ -14,12 +14,12 @@ export const metadata = {
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dest?: string }>;
+  searchParams: Promise<{ dest?: string; next?: string }>;
 }) {
-  const { dest } = await searchParams;
+  const { dest, next } = await searchParams;
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) {
-    redirect(resolvePostAuthRoute(dest));
+    redirect(resolvePostAuthRoute(dest, next));
   }
 
   return (

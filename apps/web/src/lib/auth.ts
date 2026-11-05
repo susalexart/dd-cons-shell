@@ -24,12 +24,69 @@ import {
 
 const isProd = process.env.NODE_ENV === 'production';
 
+const baseURL = process.env.SHELL_BETTER_AUTH_URL ?? 'http://localhost:3000';
+
+// Apex domain used for cross-product cookies. Honour SHELL_COOKIE_DOMAIN
+// whenever it is set — not only in production. Local testing behind real
+// subdomains (agency./consulting./dev-division.) runs `next dev`, and
+// ignoring the configured domain there made the shell set a host-only cookie
+// the division apps could not read, which is a sign-in loop.
+function apexFromUrl(raw: string): string | undefined {
+  try {
+    const host = new URL(raw).hostname;
+    if (host === 'localhost' || host === '::1' || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+      return undefined;
+    }
+    const parts = host.split('.');
+    return parts.length >= 2 ? `.${parts.slice(-2).join('.')}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // In prod the cookie MUST be set on the apex umbrella domain so the two
-// products' sub-paths can read it. In dev, leaving `domain` undefined makes
-// better-auth fall back to host-only on localhost, which is what we want.
-const cookieDomain = isProd
-  ? (process.env.SHELL_COOKIE_DOMAIN ?? '.dd-cons.aroma-cloud.online')
-  : undefined;
+// products can read it. In dev, an explicit SHELL_COOKIE_DOMAIN still wins so
+// subdomain testing works; on localhost the domain is always host-only (a
+// real-domain cookie would be rejected by the browser and cause a loop).
+const baseApex = apexFromUrl(baseURL);
+const explicitCookieDomain = process.env.SHELL_COOKIE_DOMAIN?.trim() || undefined;
+// In prod the cookie MUST be set on the apex umbrella domain so the two
+// products can read it. In dev, an explicit SHELL_COOKIE_DOMAIN still wins so
+// subdomain testing works; on localhost the domain is always host-only (a
+// real-domain cookie would be rejected by the browser and cause a loop).
+const cookieDomain = baseApex
+  ? (explicitCookieDomain ?? baseApex)
+  : isProd
+    ? '.dd-cons.aroma-cloud.online'
+    : undefined;
+
+const secureCookie = isProd || baseURL.startsWith('https://');
+
+// Origins allowed to start an OAuth flow / call get-session. The shell serves
+// the issuer; the division apps run on sibling subdomains (or localhost
+// ports) and must be trusted explicitly for callbackURLs to survive.
+function trustedOrigins(): string[] {
+  const origins = new Set<string>();
+  const add = (value: string | undefined | null) => {
+    const trimmed = value?.trim().replace(/\/+$/, '');
+    if (trimmed) origins.add(trimmed);
+  };
+  add(baseURL);
+  for (const value of (process.env.SHELL_TRUSTED_ORIGINS ?? '').split(',')) add(value);
+  const apex = cookieDomain?.replace(/^\./, '');
+  if (apex) {
+    add(`https://${apex}`);
+    add(`https://dev-division.${apex}`);
+    add(`https://consulting.${apex}`);
+  }
+  add('http://localhost:3000');
+  add('http://localhost:5173');
+  add('http://localhost:5174');
+  add('http://127.0.0.1:3000');
+  add('http://127.0.0.1:5173');
+  add('http://127.0.0.1:5174');
+  return [...origins];
+}
 
 export const auth = betterAuth({
   database,
@@ -67,7 +124,8 @@ export const auth = betterAuth({
     }
     return s;
   })(),
-  baseURL: process.env.SHELL_BETTER_AUTH_URL ?? 'http://localhost:3000',
+  baseURL,
+  trustedOrigins: trustedOrigins(),
 
   // Cookie cross-domain shape. See top-of-file comment.
   advanced: {
@@ -75,7 +133,7 @@ export const auth = betterAuth({
     defaultCookieAttributes: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: isProd,
+      secure: secureCookie,
       ...(cookieDomain ? { domain: cookieDomain } : {}),
     },
   },
