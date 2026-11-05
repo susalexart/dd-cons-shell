@@ -10,7 +10,7 @@ type Tier = {
   highlighted?: boolean;
 };
 
-// Capabilities pulled from /home/ubuntu/dev-devision/.planning/STATE.md P22–P24
+// Capabilities pulled from ../dev-devison/.planning/STATE.md P22–P24
 // + Provider-Routing cross-cut. Wording mirrors the audited capability list
 // so we're not over-promising — the brief is explicit about reflecting v1.3.
 const DEV_DIVISION_TIERS: Tier[] = [
@@ -69,7 +69,7 @@ const DEV_DIVISION_TIERS: Tier[] = [
   },
 ];
 
-// Capabilities pulled from /home/ubuntu/consulting-agency/README.md —
+// Capabilities pulled from ../consulting-agency/README.md —
 // five-agent crew, deterministic citation verification, per-engagement RAG vault,
 // custom Mastra scorers.
 const CONSULTING_TIERS: Tier[] = [
@@ -129,6 +129,7 @@ const CONSULTING_TIERS: Tier[] = [
 ];
 
 function tierHref(product: 'dev-division' | 'consulting', tier: Tier): string {
+  // TODO(owner): confirm sales address (tests/integration/marketing-pages.test.ts couples to it)
   if (tier.cta.kind === 'sales') return 'mailto:sales@aroma-cloud.online';
   return `/sign-up?dest=${product}&tier=${tier.cta.tier}`;
 }

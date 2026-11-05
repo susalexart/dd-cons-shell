@@ -18,8 +18,9 @@ import { type NextRequest, NextResponse } from 'next/server';
  */
 const SESSION_COOKIE_NAMES = ['__Secure-shell.session_token', 'shell.session_token'];
 
-const LEGACY_COOKIE_DOMAIN =
-  process.env.SHELL_LEGACY_COOKIE_DOMAIN ?? '.dd-cons.aroma-cloud.online';
+// Only set during a domain migration: the previous apex whose wide cookie
+// copies should be expired. No default — never clear against a guessed domain.
+const LEGACY_COOKIE_DOMAIN = process.env.SHELL_LEGACY_COOKIE_DOMAIN?.trim() || undefined;
 const CURRENT_COOKIE_DOMAIN = process.env.SHELL_COOKIE_DOMAIN?.trim() || undefined;
 
 /**
@@ -93,7 +94,8 @@ export function middleware(request: NextRequest) {
       'Set-Cookie',
       `${name}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${secure}`,
     );
-    // Legacy wide copy, if it is not the domain we are currently issuing on.
+    // Legacy wide copy — only when an operator explicitly configured the old
+    // apex, and it is not the domain we are currently issuing on.
     if (LEGACY_COOKIE_DOMAIN && LEGACY_COOKIE_DOMAIN !== CURRENT_COOKIE_DOMAIN) {
       response.headers.append(
         'Set-Cookie',

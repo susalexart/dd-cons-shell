@@ -1,10 +1,11 @@
 /**
  * dd-cons-shell better-auth instance.
  *
- * This is the umbrella's auth issuer. The session cookie is set on
- * `.dd-cons.aroma-cloud.online` in production so dev-division (mounted at
- * `/dev-division/*`) and consulting-agency (mounted at `/consulting/*`) can
- * both read it on subsequent requests and verify via /api/auth/get-session.
+ * This is the umbrella's auth issuer. The session cookie is set on the apex
+ * of SHELL_BETTER_AUTH_URL (or SHELL_COOKIE_DOMAIN) in production so
+ * dev-division (mounted at `/dev-division/*`) and consulting-agency (mounted
+ * at `/consulting/*`) can both read it on subsequent requests and verify via
+ * /api/auth/get-session.
  *
  * In development (NODE_ENV=development) the cookie falls back to host-only
  * (no Domain, no Secure) so local testing on http://localhost:3000 works.
@@ -50,15 +51,23 @@ function apexFromUrl(raw: string): string | undefined {
 // real-domain cookie would be rejected by the browser and cause a loop).
 const baseApex = apexFromUrl(baseURL);
 const explicitCookieDomain = process.env.SHELL_COOKIE_DOMAIN?.trim() || undefined;
-// In prod the cookie MUST be set on the apex umbrella domain so the two
-// products can read it. In dev, an explicit SHELL_COOKIE_DOMAIN still wins so
-// subdomain testing works; on localhost the domain is always host-only (a
-// real-domain cookie would be rejected by the browser and cause a loop).
-const cookieDomain = baseApex
-  ? (explicitCookieDomain ?? baseApex)
-  : isProd
-    ? '.dd-cons.aroma-cloud.online'
-    : undefined;
+
+function resolveCookieDomain(): string | undefined {
+  if (baseApex) return explicitCookieDomain ?? baseApex;
+  if (!isProd) return undefined;
+  if (explicitCookieDomain) return explicitCookieDomain;
+  // next build evaluates this module during page-data collection with
+  // NODE_ENV=production but no runtime env; the boot-time guard stays strict.
+  if (process.env.NEXT_PHASE === 'phase-production-build') return undefined;
+  // Never fall back to a hard-coded (possibly stale) domain in production: a
+  // cookie issued on the wrong apex is an unreadable session for every
+  // product, i.e. a sign-in loop that is very hard to diagnose.
+  throw new Error(
+    'Cannot derive the session cookie domain: set SHELL_COOKIE_DOMAIN explicitly, or set SHELL_BETTER_AUTH_URL to a public https URL with a real hostname (not localhost / an IP).',
+  );
+}
+
+const cookieDomain = resolveCookieDomain();
 
 const secureCookie = isProd || baseURL.startsWith('https://');
 
