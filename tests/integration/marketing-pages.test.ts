@@ -102,9 +102,9 @@ describe('P26 — /pricing renders both tier columns', () => {
   });
 
   it('journey decorative layers on / are marked aria-hidden (regression guard)', async () => {
-    // Motion-core invariant: the brain canvas, grain overlay, spine nav, and
-    // HUD are purely decorative and MUST stay aria-hidden so screen readers
-    // skip them and only read the chapter copy.
+    // Motion-core invariant: the brain canvas, grain overlay and spine nav
+    // are purely decorative and MUST stay aria-hidden so screen readers skip
+    // them and only read the chapter copy.
     const res = await fetch(`http://localhost:${PORT}/`);
     expect(res.status).toBe(200);
     const html = await res.text();
@@ -115,7 +115,22 @@ describe('P26 — /pricing renders both tier columns', () => {
     expect(html).toMatch(
       /class="spine"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="spine"/,
     );
-    expect(html).toMatch(/class="hud"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*class="hud"/);
+  });
+
+  it('journey HUD on / is a focusable sector <nav> with an accessible name', async () => {
+    // The HUD became a clickable sector nav ("clickable HUD sector nav"): it
+    // must NOT be aria-hidden (that would hide focusable buttons from AT),
+    // the <nav> needs an accessible name, and only its readouts stay hidden.
+    const res = await fetch(`http://localhost:${PORT}/`);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    const hud = html.match(/<div class="hud">([\s\S]*?)<\/div>\s*<\/div>/)?.[0] ?? '';
+    expect(hud).not.toBe('');
+    expect(hud).not.toMatch(/<div class="hud"[^>]*aria-hidden/);
+    expect(hud).toMatch(/<nav class="hud-nav" aria-label="Journey sections">/);
+    expect(hud).toMatch(/<button type="button"[^>]*aria-current="true"[^>]*>ORBIT<\/button>/);
+    expect(hud).not.toMatch(/<button[^>]*tabindex="-1"/);
+    expect(hud).toMatch(/<div aria-hidden="true">DEPTH/);
   });
 
   it('has a single <h1> and at least two <h2>s for landmark structure', async () => {
